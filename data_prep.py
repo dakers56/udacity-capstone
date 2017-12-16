@@ -1,13 +1,12 @@
 import re
 import os
+import joblib
 
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer
 
-
 def alphanumerical(text):
     return re.sub(pattern="^[a-zA-Z0-9\s]", repl="", string=text)
-
 
 def build_corpus():
     corpus = []
@@ -17,7 +16,6 @@ def build_corpus():
             corpus.append(alphanumerical("".join(file.readlines())))
             file.close()
     return corpus
-
 
 def data_folders():
     folders = []
@@ -36,3 +34,5 @@ cnt_vec = CountVectorizer(input=test_transcript, stop_words=set(stopwords)).fit(
 print("Final vocabulary:")
 for v in cnt_vec.vocabulary_:
     print(str(v))
+
+joblib.dump(cnt_vec, "vocab.pkl")
