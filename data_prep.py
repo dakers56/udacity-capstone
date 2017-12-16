@@ -1,6 +1,8 @@
 import re
 import os
 import joblib
+import dateutil.parser
+import datetime
 
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer
@@ -35,4 +37,6 @@ print("Final vocabulary:")
 for v in cnt_vec.vocabulary_:
     print(str(v))
 
-joblib.dump(cnt_vec, "vocab.pkl")
+now = str(dateutil.parser.parse(str(datetime.datetime.now()))).replace(" ", "_")
+print("now: %s" % now)
+joblib.dump(cnt_vec, "vocab_%s.pkl" % now)
