@@ -34,15 +34,16 @@ def write(cnt_vec, folder='./'):
     now = str(dateutil.parser.parse(str(datetime.datetime.now()))).replace(" ", "_")
     joblib.dump(cnt_vec, "%svocab_%s.pkl" % (folder, now))
 
+def get_vectorizer(corpus):
+    return CountVectorizer(stop_words=set(stopwords.words('english'))).fit(corpus)
 
-stopwords = stopwords.words('english')
+
 test_file = open('/Users/devonakers/udacity/capstone/data_backup/seeking_alpha/A/A_August 15, 2017 04:30 PM ET', 'r')
 test_transcript = alphanumerical("".join(test_file.readlines()))
 corpus = build_corpus()
 
 print("Fitting CountVectorizer to determine vocabulary.")
-cnt_vec = CountVectorizer(input=test_transcript, stop_words=set(stopwords)).fit(corpus)
-cnt_vec = '{}'
+cnt_vec = get_vectorizer(corpus)
 print("Final vocabulary:")
 for v in cnt_vec.vocabulary_:
     print(str(v))
