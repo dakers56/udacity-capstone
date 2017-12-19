@@ -116,22 +116,73 @@ def all_funds():
             all = all.append(df)
     return all
 
+class QuarterYearFormat:
+    def __init__(self, regex, format_func):
+        self.regex = regex
+        self.format_func = format_func
+
+    def matches(self, string):
+        return re.search(self.regex, string)
+
+    def format(self, string):
+        self.format_func(string)
+
+def swap_str(string, ch1, ch2):
+    ch1_index = string.index(ch1)
+    ch2_index = string.index(ch2)
+    as_list = list(string)
+    as_list[ch1_index] = ch2
+    as_list[ch2_index] = ch1
+    return str(as_list)
+
+def swap_at_ind(string, i1, i2):
+    string = list(string)
+    temp = string[i1]
+    string[i1] = string[i2]
+    string[i2] = temp
+    return "".join(string)
+
+def swap_NQ(nq_or_qn):
+    return swap_at_ind(nq_or_qn, 0, 1)
+
+def get_NQ(string):
+    is_nq = re.search("[0-4]Q", string)
+    if is_nq:
+        return is_nq.group(0)
+    is_nq = re.search("Q[0-4]", string)
+    return swap_NQ(is_nq.group(0))
+
+def get_N(qn_or_nq):
+    return re.search("[0-4]", qn_or_nq).group(0)
+
 def get_date(file):
     file = open(file, 'r')
     for line in file.readlines():
-        pat = ['F[0-9]Q[0-9]{,4}']
-        for p in pat:
+        pat1 = [QuarterYearFormat('F[0-4]Q[0-9]{,4}', lambda x : swap_str(x, "Q", )), 'Q[0-4]{1}\\s+[0-9]{,4}']
+        for p in pat1:
             m = re.search(p, line)
             if m:
                 return m.group(0).replace(" ", "_")
     return "no_date_found"
 
 
+def format(quarter):
+    return
 
 if __name__ == '__main__':
-    test = ['data_backup/seeking_alpha/A/A__August_14,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__February_15,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__May_15,_2007_4:30_pm_ET_']
-    for t in test:
-        print(get_date(t))
+    # test = ['data_backup/seeking_alpha/A/A__August_14,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__February_15,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__May_15,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__Q1_2006_Earnings_Release_Conference_Call_']
+    # for t in test:
+    #     print('t: %s' % get_date(t))
+
+    # print(swap_str("F3Q07", "Q", "3"))
+    print(get_NQ("F3Q07"))
+    print(get_NQ("FQ407"))
+    print(get_NQ("F14Q07"))
+    print(get_NQ("FQ2Q07"))
+
+
+
+
 
 
 
