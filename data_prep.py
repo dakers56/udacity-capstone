@@ -3,12 +3,12 @@ import os
 import joblib
 import dateutil.parser
 import datetime
-
+import time
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
 import numpy as np
 
 
@@ -101,6 +101,8 @@ def vectorize_file(cnt_vec, file):
 
 
 if __name__ == '__main__':
+    print("Training model for capstone project")
+    now = time.clock()
     cnt_vec = None
     vocab_path = 'vocab.pkl'
 
@@ -114,6 +116,9 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = get_samples(cnt_vec)
 
     print("Training classifier")
-    clf = LogisticRegression().fit(X_train, y_train)
+    clf = GaussianNB().fit(X_train, y_train)
     print("Training accuracy: %s" % clf.score(X_train, y_train))
     print("Testing accuracy: %s" % clf.score(X_test, y_test))
+
+    now = time.clock() - now
+    print("Process took %s miliseconds." )
