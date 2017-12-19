@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 
 def alphanumerical(text):
-    return str(re.sub(pattern="[^a-zA-Z0-9\s]", repl="", string=text).replace("\n",""))
+    return re.sub(pattern=r'[\\]x[0-9a-eA-Z]{1,2}', repl="",string=re.sub(pattern="[^a-zA-Z0-9\s]",repl="", string=text)).replace("\n","")
 
 
 def stem_file(file):
