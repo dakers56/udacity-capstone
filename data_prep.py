@@ -3,6 +3,7 @@ import os
 import joblib
 import dateutil.parser
 import datetime
+import pandas as pd
 import time
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -100,25 +101,42 @@ def vectorize_file(cnt_vec, file):
     return X.sum(axis=0, dtype=np.int64).getA()[0]
 
 
+def read_fund(file):
+    return pd.read_csv(file)
+
+def all_funds():
+    all = None
+    base_dir = "fundamentals"
+    for file in os.listdir(base_dir):
+        path = "%s/%s" % (base_dir, file)
+        df = read_fund(path)
+        if all is None:
+            all = df
+        else:
+            all = all.append(df)
+    return all
+
 if __name__ == '__main__':
-    print("Training model for capstone project")
-    now = time.clock()
-    cnt_vec = None
-    vocab_path = 'vocab.pkl'
+    print(all_funds()['symbol'])
 
-    if not os.path.exists(vocab_path):
-        corpus = build_corpus()
-        cnt_vec = get_vectorizer(corpus)
-        write_vectorizer(cnt_vec)
-    else:
-        cnt_vec = joblib.load(vocab_path)
-
-    X_train, X_test, y_train, y_test = get_samples(cnt_vec)
-
-    print("Training classifier")
-    clf = GaussianNB().fit(X_train, y_train)
-    print("Training accuracy: %s" % clf.score(X_train, y_train))
-    print("Testing accuracy: %s" % clf.score(X_test, y_test))
-
-    now = time.clock() - now
-    print("Process took %s miliseconds." )
+    # print("Training model for capstone project")
+    # now = time.clock()
+    # cnt_vec = None
+    # vocab_path = 'vocab.pkl'
+    #
+    # if not os.path.exists(vocab_path):
+    #     corpus = build_corpus()
+    #     cnt_vec = get_vectorizer(corpus)
+    #     write_vectorizer(cnt_vec)
+    # else:
+    #     cnt_vec = joblib.load(vocab_path)
+    #
+    # X_train, X_test, y_train, y_test = get_samples(cnt_vec)
+    #
+    # print("Training classifier")
+    # clf = GaussianNB().fit(X_train, y_train)
+    # print("Training accuracy: %s" % clf.score(X_train, y_train))
+    # print("Testing accuracy: %s" % clf.score(X_test, y_test))
+    #
+    # now = time.clock() - now
+    # print("Process took %s miliseconds." )
