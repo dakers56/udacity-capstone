@@ -1,0 +1,232 @@
+Akamai Technologies, Inc. (NASDAQ:
+Citi Global Technology Conference
+September 03, 2013 10:30 a.m. ET
+Executives
+Tom Leighton - Chief Executive Officer
+Analysts
+Mark Mahaney - Citigroup
+\n', b'
+Mark Mahaney - Citigroup
+\n', b'
+I am Mark Mahaney, Internet analyst with Citi. Thanks everyone for coming and it\xe2\x80\x99s my pleasure to welcome the Co-Founder and CEO of Akamai, Dr. Tom Leighton. 
+Tom Leighton
+Thank you. 
+Mark Mahaney \xe2\x80\x93 Citigroup
+Thanks for coming. 
+Tom Leighton
+It\'s my pleasure.
+Mark Mahaney \xe2\x80\x93 Citigroup
+So I think it\xe2\x80\x99s pretty while known here that while you\xe2\x80\x99ve been at the company since its inception, that you earlier this year took over as CEO of the company, maybe if you could just provide some of us that aren\'t as up to speed how that transition is going and maybe highlight any of the key changes that you may have implemented, if any taking on this new expanded role.
+Tom Leighton
+It\xe2\x80\x99s been a very smooth transition. Obviously I have been at the company for 15 years. I worked really closely with Paul Sagan, who was the CEO for the last eight years and even before Paul, with George Conrades, who was our first CEO. So no big changes or strategy shift per se. I had a very strong role in the company before, more than your normal Chief Scientist role in working so closely with Paul and George.
+There were couple of personnel movements that took place at the same time when I became CEO. So I had those out of the way right at the beginning and the team has been off and running and we\xe2\x80\x99re having a good year.
+Mark Mahaney \xe2\x80\x93 Citigroup 
+What were some of those key personnel changes and why were those made?
+Tom Leighton
+Yeah, so I elevated Bob Hughes to President of Worldwide Operations. He picked up some additional functionalities, and Rick McConnell to President of Products and Development. He picked up Corporate Development and he picked up our all our overall product division, which is the products that we sell to carriers.
+Carrier strategy for us is really important and has evolved recently but we want to have a much deeper and more supportive relationship with the major carriers.
+Mark Mahaney \xe2\x80\x93 Citigroup
+Okay. So before we get into that which obviously is important for those of us that maybe a lot newer to the company can you just give us an overview of kind of product or solutions that you\xe2\x80\x99re offering, maybe a good way to also tie in some of the new rebranding and then we can dig into the individual product piece also.
+Tom Leighton
+Right, Akamai has two major product divisions today. The first is media. That\xe2\x80\x99s what we\xe2\x80\x99re probably best known, products for delivering video, software, objects, which I think is content delivery. It\xe2\x80\x99s about half our revenue today. That business is driven largely by traffic. So the revenue comes from our cost to deliver a gigabyte of a movie say or a megabit a second of say social networking traffic.
+That business is marked rapid traffic increase year-over-year, continuing pricing decreases. It\xe2\x80\x99s a highly competitive market. We have a very good position there. We put a lot of effort into making our costs be low. And I was really happy to see that over the past year our gross margins have improved for the first time in a long time in that business and that\xe2\x80\x99s the company as a whole.
+The other major component of our revenue is application acceleration. This is about making web applications and websites be really fast. Mobile is really coming on the scene in a big way now. We\xe2\x80\x99re seeing about a quarter of online transactions now being done on mobile devices That\xe2\x80\x99s up by about a factor of 10 over the last few years. We think in a couple of years it will be the majority of online transactions.
+Mobile performance, as you all know, is generally very poor. It\xe2\x80\x99s about nine or ten years behind the landline Internet in terms of the speed and that\xe2\x80\x99s an area where we have made a large adjustment to make those transactions to be fast and with the recent release of our second version of Ion we\xe2\x80\x99re seeing really very good performance gains and that\xe2\x80\x99s important to our customers.
+The application acceleration business is different than the media business in that it\xe2\x80\x99s not so much traffic based and there is few large customers that are traffic-based but the vast majority of that business is transaction-based will sell a service for an application and be paid on a monthly basis. And generally speaking the traffic is de minimus as a portion of that.
+We have new areas, relatively speaking, for example security which we have worked on for a long time in our government business but we really got serious about last year with the launch of Kona Site Defender in our commercial business. And so last year we did $22 million in the security business. That is growing very rapidly and I think ultimately the market there is as large as it is for application acceleration business, which is about 42% of our revenue today.
+As we look to the future we\xe2\x80\x99re investing in a new capability called hybrid cloud optimization and this is about providing offload and optimization for branch offices, retail stores, hotels, any satellite office where you want to optimize the corporate network, you want to optimize SaaS and you want to optimize Internet access.
+And it\xe2\x80\x99s a fundamentally different business model where we would sell per branch location and provide them access to the Akamai platform for the offload and acceleration. And that\xe2\x80\x99s no revenue today, very little next year, we\xe2\x80\x99re in the early testing phases, but I think ultimately could be an important business for us.
+Mark Mahaney - Citigroup
+And when you put your chief scientist hat on and you look out into the future, how do you see, particularly the CDN side of the business sort of changing over time in terms of delivery and how does the company kind of position itself for that?
+Tom Leighton
+Yeah, I think there is an enormous amount of traffic that has the potential to come online. You just think about today, the typical video online is being delivered at a megabit a second. That\xe2\x80\x99s still little bit below standard FTV. Our higher end customers you\xe2\x80\x99ll see them maybe three at megs and outlier might be 10. But really the dominant mode of delivery today is a megabit a second.
+And now you think about all the buzz around 4K. 4K is 25 megs to 50 megs. And there\'s even 8K which people are talking about, that gets you up to 100 megs. And now you look at a couple of orders of magnitude of traffic right there, and then you think about the number of hours that are watched online versus traditional channels and it\'s a tiny fraction of viewing is done online today, for all the hype and buzz around media, online is tiny, and that could easily grow by a factor of 10 over the next few years.
+So there is an enormous amount of traffic coming online. And to make that be viable you\xe2\x80\x99ve got to have scale, you\xe2\x80\x99ve got to do it at tremendous quality levels, as you think about 4K and the new format, and you\xe2\x80\x99ve got to bring your cost down. And that probably is the most important thing. And so we\xe2\x80\x99re making major investments, just from day-to-day to bring our costs down. But as we look towards the future now wearing the chief scientist hat and the CEO hat both, as you want to have a model that is much less expensive. And we\xe2\x80\x99re building that kind of model today.
+Mark Mahaney - Citigroup
+Can you walk us through that, how do you bring your costs down?
+Tom Leighton
+Yeah, so you get out of the traditional model for video delivery is if you get a video online, there is some server somewhere dedicated to giving you that video. It\xe2\x80\x99s called unicast, that\xe2\x80\x99s basically how it works. And we\xe2\x80\x99re working on technology to do it in a different way. So you take advantage of multi-task, what exists in networks, to do client assisted delivery, which we do today for software downloads in some verticals.
+We have about 14 million clients today that are helping us to deliver content. And when they help us to deliver the content, takes a huge bite out of our cost, which then we can use to lower price; and to pre-position content, and make it available for later access. And this would take advantage of a device in the home that has extra storage available, always on, always connected.
+This future vision I\xe2\x80\x99m talking about, this is years down the road. We\xe2\x80\x99ve done a lot of the technology development, but there is changes in the ecosystem that need to take place. I am working with our partners and customers to make that to happen\xe2\x80\xa6
+Mark Mahaney - Citigroup
+ Some of this may even require hardware on the user end?
+Tom Leighton
+Yeah, some of it, you want to take advantage of specialized hardware, which is not so special but it has to be available to us in the home.
+Mark Mahaney - Citigroup
+Right.
+Tom Leighton
+For example. And I think over time that will probably happen.
+Mark Mahaney - Citigroup
+And what about the unique challenges of mobile and how do you sort of replicate especially on the accelerator side, some of the things that you\xe2\x80\x99ve been able to do into the mobile environment? How do you work with those, the network there, how are you building out?
+Tom Leighton
+Yeah so mobile, yeah, mobile is -- cellular is really challenging because there is very high latency between the device and tower. And the way to think of it is to go from here to the tower near here is about 100 milliseconds. On the landline Internet, that\'s the time between here and Romania. So just down the block cellular is like a cross in to Eastern Europe from here, just to give you some comparison.
+The bandwidth is highly limited. There is a lot of buzz about 4G, great stuff, takes several years for 4G to become really predominant. And even then aggregate bandwidth in 4G, maybe a factor two, factor of four more. We need factor of several orders of magnitude more, aggregate capacity.
+So you got capacity constraints and you got huge latency and that makes it slow. So you got an application, the protocols are chatty, means when you click before it shows up on your device, there is a lot of back and forth. And so those tens of a second add up and make it really slow.
+So what we do, we do a bunch of stuff, a lot of that now in our latest release of Ion to make it fast is we detect the device, we detect the network, we detect if there is congestion and if there issues, getting the capacity, we will adaptably compress the images, we do offer to front end optimizations, you don\xe2\x80\x99t have all the back and forth. We will actually be measuring the performance on the end user device and we are planning to report back on that.
+We are looking at ways of pre-positioning content, we don\xe2\x80\x99t do that yet. But we have capabilities now in development to make that happen, so that when you click actually a bunch of what you want is already on your device, you just didn\xe2\x80\x99t know it and that makes it to be a lot faster response time.
+We prioritize what comes on the first screen shot as opposed to what\xe2\x80\x99s down here, so that makes it look like it\xe2\x80\x99s faster to the end user. And the initial performance was also very good among the first adopters of the new solution.
+Mark Mahaney \xe2\x80\x93 Citigroup
+And going back to what you doing to keep your cost down, gross margins of the company have been on a nice trend. But I believe that your guidance is suggesting sort of a decline in to the lower end or to that lower margin range of 40% to 45% of that\xe2\x80\xa6
+Tom Leighton
+EBITDA margin?
+Mark Mahaney \xe2\x80\x93 Citigroup
+EBITDA.
+Tom Leighton
+Yeah, so gross margins we\xe2\x80\x99re forecasting near term non-GAAP gross margins 76%, 77%.
+Mark Mahaney \xe2\x80\x93 Citigroup
+EBITDA margin?
+Tom Leighton
+And that\xe2\x80\x99s through the hard work of getting the cost of delivering the traffic down. 
+Mark Mahaney \xe2\x80\x93 Citigroup
+Right.
+Tom Leighton
+EBITDA margins we forecast medium long-term model 40% to 45% low 40s.
+Mark Mahaney \xe2\x80\x93 Citigroup
+Is it -- a key driver of that is the investments you are making on the sales force side?
+Tom Leighton
+Yes, in headcount, direct reps, the support necessary for the reps in the go-to-market function. We are doing substantial increase there. And that grows the OpEx, takes a while for the reps to become productive. And so that does put pressure on the EBITDA margins.
+Mark Mahaney \xe2\x80\x93 Citigroup
+So the business historically has had a fairly small direct sales force. Can you talk about sort of the decision that was made to start to really push on the paddle and grow your sales force what was the strategic rationale behind that? Where did you start out where you are today, kind of where do you see your sales force maybe a year from now and we can kind of get into some of the productivity discussions? 
+Tom Leighton
+Yeah so we finished last year with 215 direct quota bearing reps globally. Pretty small for a company of our size. For our media business we don\xe2\x80\x99t need all that many reps, there\'s relatively speaking a small number of accounts that drive a lot of the traffic. But for application acceleration and security business that\xe2\x80\x99s rep driven transaction so not traffic-based. 
+And so if you have more reps and they are being productive you are going to sell more of those services. And we very much want to be growing that business. We feel there is plenty of greenfield for us there, both across various verticals and various geographies. So a major decision to add 90 more, which percentage wise is a significant increase and along with the supporting people to make those reps be productive. And we are on track with the 90 for this year.
+Mark Mahaney \xe2\x80\x93 Citigroup
+And those reps are selling both acceleration and so you can talk about sort of their background and were they trained and the selling strategy?
+Tom Leighton
+Yeah, sure they are enterprise trained reps. They will support -- as reps go into new geographies they will sell everything, so they will also sell to media in new geographies but where we already have a presence they are focused on application acceleration and security sales. Security we do actually training to the security. We have a security overlay scheme as well that can go in and help the rep when it comes time talking to the CSO and talking the direct language on the security front.
+Mark Mahaney \xe2\x80\x93 Citigroup
+Great. What does the sort of productivity ramp look like for a quite very typical sales person and would you expect to start seeing some of the noticeable benefits from the accelerated ramp that you had recently? 
+Tom Leighton
+Yeah, the rep might close their first deal second quarter end or so. They start getting reasonably productive four to five quarters in. And they continue to get better actually several years and they get even more productive. But we\xe2\x80\x99re getting real value four to five quarters in. And so you would expect to see the benefit from this hiring in 2014. 
+Mark Mahaney \xe2\x80\x93 Citigroup
+Yeah, and I think you set a target of $5 billion by the end of the decade. Can you kind of may be talking along the lines of media acceleration and then securing some of the newer solutions kind of how -- the bridge to get there and help us to get comfortable with that number. 
+Tom Leighton
+So media today is half our revenue growing now about 14% year-over-year. We haven\'t given A projection for 2020 as to what fraction it would be, but I would expect it to be less than half by 2020. You got the performance application acceleration category growing at I think a faster clip and I think that should be a substantial part of the business going forward. 
+And then you have the new area of security which is 1% or 2% today, that has the potential to be much larger as a percentage of our revenue going towards the end of the decade as it just started as a commercial business growing rapidly.
+And I hope that the new business that we\'re investing in with hybrid cloud optimization, that by that time should be a significant contributor to revenue. And of course when you are looking that far out who knows what good ideas and innovation will, that we\'ll have over the next few years that could impact 2020 revenue.
+Mark Mahaney - Citigroup
+Right. And then the media business is that a stable business or does it tend to be more volatile and if you could talk about what drives that volatility and gives you the comfort that, that could go to 10 and 18 to 14 if you can talk a little bit about the drivers of\xe2\x80\xa6?
+Tom Leighton
+Yeah, the drivers are simple, it\'s traffic which is growing at a rapid rate, it can fluctuate but it\'s a rapid growth traffic business and pricing which is rapidly declining and I expect will continue to, in fact we work hard enabling a decline to happen, and to happen profitably. And it\'s like a product of the traffic times the price then that\'s your revenue in that business and it\'s driven by a relatively small number of powerful media brands that drive a lot of the traffic. 
+I expect it\'s highly competitive business. There are literally dozens of people that compete in that space, and a lot of big folks compete in that space. I think we do very well in that business and we are having improving gross margin which I am very pleased with, given that\'s a very competitive space.
+I think there is the potential for even faster traffic growth as we talk about. There could be orders of magnitude, traffic growth that will only happen with significant pricing decline, which is why we are investing in technology to make that happen for the benefit of Akamai and the ecosystem. 
+It can vary, little changes in traffic or pricing can change the revenue growth by a few points either way. I am optimistic about the long term growth in that business and the profit driver for Akamai.
+Mark Mahaney - Citigroup
+From what you can see that today mid-teens feels like a pretty comfortable level?
+Tom Leighton
+That\'s where we are today. We are not giving real projections there. We breakout our businesses every year, more of a historical view at our IR day. But that\'s where we are today and it seems like a reasonable course.
+Mark Mahaney - Citigroup
+Can you talk a little bit about some of the traits of the other competitors in the marketplace [inaudible] sort of how you compete with them?
+Tom Leighton
+We got a ton competitors in the CDN space and then in the media division we always have and I expect we always will and there as new ones come out pretty much every quarter there is a new one, we differentiate ourselves by our quality, our scale, our services, our functionality and our track record. And today in some cases we will be charging a premium for those added benefits and I think we\'ve been successful in the marketplace by just really having a better service.
+Mark Mahaney - Citigroup
+And you talked about hybrid cloud, so the I think that\'s the tail line of solutions right. Can you talk a little bit more about what you are providing there, what sort of the current customer looks like today, how they are using that service?
+Tom Leighton
+So the enterprise services, there is Web app accelerator, our historical service and that\'s now we have the new Terra Alta, the next generation of Web app accelerator. That is an important component of our applications acceleration business, not the majority of it, but it\'s important. The hybrid cloud optimization is new. There is no revenue there. We are in the testing phase now and we just have the first few servers put in to stores. So that\'s -- that won\'t have revenue, you know, meaningful revenue for some time though. 
+But we\xe2\x80\x99re excited about the potential in that marketplace. As more and more entities move online stores, hotels, branch offices and they need to dramatically grow their capacity and they need to get beyond the WAN to go to SaaS and go to the Internet provides a tremendous opportunity. 
+Mark Mahaney \xe2\x80\x93 Citigroup
+With this typical use case it seems like you are having quite a few bit of traction at least early on from the beta customers in the areas of you said retail. Can you talk about may be a typical use case? 
+Tom Leighton
+Yeah, so we are starting in retail in part because our e-commerce customers asked us to do that for them. And in part because it\'s not served today, they can\xe2\x80\x99t afford to have the traditional land optimization device in the store. And even if they could they wouldn\xe2\x80\x99t do anything for the SaaS and for the Internet, which is what they need. 
+A typical store today will have about a megabit a second, may be half a meg, one and half meg, they need 10x that easily. It\xe2\x80\x99s congested, it performs very poorly. The stores, today what the stores want to have is the online catalog with videos and you can see all sorts of stuff that you can\xe2\x80\x99t actually may be buy right there in the store because they can\'t everything in the store. 
+They want the user to have a great experience in the store. Even if they are just going to the Internet, they want the user to stay in the store, especially the premium brand. It\xe2\x80\x99s all about the user experience and today the user always has another device that they want and they doing something with while they are in the store. 
+So they need access to the Internet and they want to perform well and meanwhile that megabit a second they had in the store is extremely expensive, pretty much everywhere especially outside of North America. And they can\xe2\x80\x99t afford to go 10x. And so that\xe2\x80\x99s where the offload capability that we have, the optimization through de-duplication, caching, catching, pre-pushing of content makes a big difference in cost savings and enables them to extend what they have. 
+Mark Mahaney \xe2\x80\x93 Citigroup
+I want to ask you about your business outside the U.S. compared to a handful of the other compared comps, your business kind of under indexes in terms of international revenue contribution, I think around 30%, there are other comps that are 40%, 50%. Why is that and kind of what are you doing to grow the business outside the U.S.? Do you see that as an opportunity and if so kind of what\xe2\x80\x98s your strategy for growing outside, the business?
+Tom Leighton
+Yeah, I would expect the percentage of your business outside North America to grow. Now partly it shows up at 30% because a lot of the gigantic corporations we\'re reporting through North American revenue, even though they have significant user bases outside of North America.
+So partly it\'s just how it\xe2\x80\x99s accounted for. That said we are making the majority of our investments today outside of North America in terms of direct reps and the support for those reps. It\xe2\x80\x99s outside and that\xe2\x80\x99s because there\'s such a I think tremendous opportunity for growth there.
+Mark Mahaney \xe2\x80\x93 Citigroup
+So maybe I\xe2\x80\x99ll pause there and see if there are any questions in the audience, yeah?
+Unidentified Analyst
+ 
+(Inaudible).
+Tom Leighton
+Okay. So mobile transcends the CDN business which is our media business which is half of our revenue and the application acceleration business. And what we do for mobile in those two spaces is really different. One is about speed, the other is about volume. Now in terms of the media CDN business that\xe2\x80\x99s going to be highly competitive forever, at least this is our view we are expecting that to be the case. 
+And we differentiate by having better performance. If it\xe2\x80\x99s video, better video quality, having scale because that business is about terabit a second of traffic, many terabits a second of traffic, so scale really matters. 
+It\'s about the services and the functionality around it, so that we will do transcoding in the cloud for example. We have very substantial storage capabilities, making it as easy as possible for our big media customers to manage all that content on the Akamai platform; real time user analytics of how they are using the media, the quality they are getting in real time. And then finally cost, which is a huge driver, and one of the gating drivers to all the traffic coming online. And those are all areas we differentiate. 
+Another aspect of this is our carrier relationships, which we view as strategically important, particularly on the media CDN side of the house. A lot of the major carriers have experimented or adopted CDNs of their own, media delivery, video delivery, infrastructures of their own. 
+And what we want to do is have those infrastructures be based on Akamai. And that\'s what you see driving the relationships now, that we talked about with AT&T, with Orange, with Swisscom, with Korea Telecom, and I hope you see more over the coming year and years where we will partner with that carrier to provide best possible CDN experience, including for mobile.
+And if we are partnering with a carrier that we get much deeper in their infrastructure, the cost works out much better because it\'s a shared now infrastructure with the carrier, and we\xe2\x80\x99re working together. And we\xe2\x80\x99ve had really I think good traction there. And that gives us a big advantage over the competition. In fact, the carriers are worried about some of the bigger competitors out there and view Akamai increasingly as a partner that helps them thrive as they go forward in CDN media world.
+Mark Mahaney \xe2\x80\x93 Citigroup
+Any other questions?
+Unidentified Analyst
+(Inaudible)
+Tom Leighton 
+Well, we\xe2\x80\x99re really different. If you want to do it yourself say, and provide your own CDN capabilities, you could go to an [Equinox] and peer with certain carriers at the place where you can do hosting. So that\xe2\x80\x99s not our business. So we provide for example a media delivery service, so we\'ll deliver the videos for you, we will make sure the end user gets a really good experience for the video, we\'ll report back real time analytics about it, those guys aren\xe2\x80\x99t in that business.
+You can think of them as closer to a hosting business, they might help you try to do Internet connectivity, so really a whole different kind of thing. We do use people like that sometimes to help us with our infrastructure as we locate it. But we\xe2\x80\x99re not competitive with them.
+Mark Mahaney \xe2\x80\x93 Citigroup 
+Any other questions?
+Can you talk to the competitiveness from Amazon?
+Tom Leighton
+Sure. Yeah, I worry about Amazon in the context of AWS. Amazon is a customer of Akamai, cloud front is a competitive service to our media business. I think if everything were to be put on the AWS platform that would not be a good development for Akamai. I think Google is another large entity that potentially is competitive in that way, they have the YouTube service. If all of video went to YouTube, that\xe2\x80\x99s not a good outcome I think for Akamai. 
+That said, we\xe2\x80\x99ve got lots of competitors and those guys aren\xe2\x80\x99t our biggest media competitors today. And that space has been competitive for a long time. There is several companies out there selling at less than rational price points already at low or negative margins, at least the companies are losing money, the ones that report publicly. So yeah, I worry about those guys but that\'s the space that we\xe2\x80\x99re already well adjusted to being highly competitive with competitive price points.
+Mark Mahaney - Citigroup
+Is there any change in the things like there is dual sourcing, multi-sourcing in type of the market, is that changed at all or increased? 
+Tom Leighton
+I think there has been a lot of that in media for a long time. Any given customer can move one way or another, there will be dual sourcing with 95% to one and 5% to another. But we have lived with that I think for a long time now in the media business. 
+Mark Mahaney \xe2\x80\x93 Citigroup
+Any other questions?
+Can you talk about media seasonality going into last few months in the year and also you kind of see that affecting securities as well as the hybrid cloud going forward?
+Tom Leighton
+Well, media seasonality can be driven by large software releases, can be driven by things sold at the holiday Christmas time and devices coming online, downloading software games being played, movies getting downloaded. So you can see that happen. News events if they are big enough or big sporting events can have some, generally not huge but can have some impact on traffic and revenue. 
+Security I would say is more of a steady business when there is lots of attacks that helps drive business because people suddenly they got to have something that works to defend them, commerce obviously the fourth quarter is a large driver of business in commerce and we generally see optics and use of our services then. 
+Hybrid cloud has no revenue yet and be minimal revenue next year so I don\xe2\x80\x99t think you see that and I wouldn\xe2\x80\x99t think of that as being a seasonal business per se. And we\xe2\x80\x99ll know better after we are into that business for a few years. 
+Mark Mahaney - Citigroup
+ 
+I had two questions first on application acceleration, if you could talk about what is your competitive advantage today and how do you think about sustainability over time. And second returning to the media business with this potential for an explosion in video volume obviously need to be precipitated by declining price when you put the two together what do you think that implies for the intermediate term growth potential of that part of your business? 
+Tom Leighton
+Yeah application acceleration is all about speed. Now you got to be reliable, you got to be secure, you got to be trusted what the SSL serves. And today we are unique in that we have level one PCI certification nobody else has that, anybody can declare themselves to be compliant but they don\xe2\x80\x99t have the certification but what really matters is the speed that is just really fast. And then we\xe2\x80\x99re just a lot faster than any of the competitors. 
+So that differentiates. And we\xe2\x80\x99re working really hard to get even faster, our goal is to be instant. And not just on landline but on mobile devices. And that takes a lot of development and so I think that\xe2\x80\x99s how we stay ahead there. 
+In terms of media business in the longer term I think it\xe2\x80\x99s hard to really put numbers on it, other than to say there is an enormous amount of traffic and the technology we\xe2\x80\x99re looking at is at a radically reduced price points. And such when you take the product there is a lot of potential for profit and revenue growth there. But that is not a slam dunk, it goes beyond Akamai. We\xe2\x80\x99re going to develop the technology for that. But we got to have the right ecosystem of partners meaning the networks probably a device in the home. 
+Our customers are going to love it because it\xe2\x80\x99s lower price points. And that will enable much more traffic and higher quality. But to have all that take place in a way that really the majority of the traffic is using that kind of a platform is several years out. I hope you will see demonstrations and proof points over the next year that we can talk about. Already we do client assisted delivery which is one component of that for software downloads in the gaming vertical, and seeing significant outflows in cost when we do that. 
+And there is about 40 million clients end users, devices that are helping us today. So we already can demonstrate that next to be doing that for video and taking advantage of multi task and other capabilities. 
+Mark Mahaney - Citigroup
+ 
+Following up on the acceleration of your, you have a lead today how do we think about your ability to maintain that lead, what\xe2\x80\x99s sustainable about it over time? 
+Tom Leighton
+Well because we\xe2\x80\x99re making large investments and getting even faster. It\'s not like we\xe2\x80\x99re sitting back at where we are today. We want to really be instant. And actually our spread vis-\xc3\xa0-vis the competition, stronger today than it was two years ago. And that\xe2\x80\x99s because of our investment in technology development and in our innovation.
+Mark Mahaney \xe2\x80\x93 Citigroup 
+You talked about software downloads, which is a big part of your business, what about in area of mobile, are you playing in there, are you enabling faster mobile downloads? My wife mentioned to me the other day, I had over 100 app updates that I needed to make. So clearly, there is a lot of that going on, and does Akamai in anyway play in that market today?
+Tom Leighton We do, we handle a lot of those downloads, it\xe2\x80\x99s much better to do it. Obviously in fact many cases you\'re required to do it over Wi-Fi, and we do a lot to make those downloads be faster. One of the things we\xe2\x80\x99re working on is to do those, if you got a device, do those downloads and movies and stuff free, download stuff when you are Wi-Fi enabled, so you can actually access the video later and when you are not Wi-Fi enabled, and you are not cellular. 
+We are not a video compression company. We don\'t compress the software download. So at the end of the day, the same number of bits generally are coming through. We do have a capability that\xe2\x80\x99s coming out in ion with de-duplication, which will help for some kinds of software downloads, probably not video but software downloads will get better. The early trials so far the user experience is much faster. So we are very encouraged by that. And that\'s something that we\'re working on that.
+Mark Mahaney \xe2\x80\x93 Citigroup
+Okay. Any other from the back? You talked about the rationale for the sales force increase. I mean you said it before that it\'s a big percentage. Did anything change that precipitated that? And you said earlier that your competitive advantage is really technology, so why spend the money on the sales force even with the Greenfield opportunity?
+Tom Leighton 
+Yeah. The product doesn\xe2\x80\x99t just sell itself, it\xe2\x80\x99s driven by the rep that goes in and talks to the IT manager and says hey, let us show you how much faster we can make your application and your website, and let us show you why that\xe2\x80\x99s really important to your business. So there is a sales process that takes place. The revenues there are driven by the rep transaction.
+The timing is good because we have Ion, which is relatively new. We just launched the first version the end of last year. And we have our new security offering, Kona Site Defender, which we launched little over a year ago. 
+So timing is very good. The reps really have some very strong products to sell that are relatively new. And you look at the business and say, for this part of the business; we\xe2\x80\x99re going to grow this through rep transaction, that\xe2\x80\x99s just how the math works. And so, really becomes a pretty simple decision to make that we need to have more reps and that\'s how we are going to grow the business.
+Mark Mahaney \xe2\x80\x93 Citigroup 
+It sounds like also a majority of those hires are outside the U.S.
+Tom Leighton
+\n', b'
+Yes.
+Mark Mahaney \xe2\x80\x93 Citigroup 
+So this is also strategically thinking at how to drive that business deeper?
+Tom Leighton 
+Yeah, that\xe2\x80\x99s right. So, really pretty simply, if you think of business of our scale, 215 reps, not a lot for our scale. So that\xe2\x80\x99s -- it\'s pretty simple decision to grow the rep count.
+Mark Mahaney \xe2\x80\x93 Citigroup 
+Just following up on the reps, how long does it take to get them up to speed, when do you start to see them productive? 
+Tom Leighton
+Yeah. They will sell their first deal in second quarter somewhere generally, and they start getting meaningfully productive four to five quarters in, they are maximally productive like three years in. But you get a good value for your rep four to five quarters in. So the investments that we\xe2\x80\x99re making this year, pays off next year in terms of increased sales of the security products.
+Mark Mahaney \xe2\x80\x93 Citigroup 
+I think you talked about the hiring some security specialists, are they included in this quota carrying rep number, are they more support...
+Tom Leighton
+Yeah, that\xe2\x80\x99s the point, they\xe2\x80\x99re add on to that. That\'s right.
+Mark Mahaney \xe2\x80\x93 Citigroup 
+And that number roughly, year-end or currently is\xe2\x80\xa6
+Tom Leighton 
+Well, for every rep, there is at least a couple other people you\'re hiring\xe2\x80\xa6
+Mark Mahaney \xe2\x80\x93 Citigroup 
+Right.
+Tom Leighton
+To help make them productive. And then security, there is -- it\xe2\x80\x99s a much smaller team but we\xe2\x80\x99re growing that team to help with the technical aspect\xe2\x80\xa6
+Mark Mahaney \xe2\x80\x93 Citigroup
+Okay. Well, I think we\'re about out of time. Thank you. 
+Tom Leighton 
+Okay. Thanks very much.
+Mark Mahaney \xe2\x80\x93 Citigroup 
+Yeah.
+Copyright policy: 
+THE INFORMATION CONTAINED HERE IS A TEXTUAL REPRESENTATION OF THE APPLICABLE COMPANY\'S CONFERENCE CALL, CONFERENCE PRESENTATION OR OTHER AUDIO PRESENTATION, AND WHILE EFFORTS ARE MADE TO PROVIDE AN ACCURATE TRANSCRIPTION, THERE MAY BE MATERIAL ERRORS, OMISSIONS, OR INACCURACIES IN THE REPORTING OF THE SUBSTANCE OF THE AUDIO PRESENTATIONS. IN NO WAY DOES SEEKING ALPHA ASSUME ANY RESPONSIBILITY FOR ANY INVESTMENT OR OTHER DECISIONS MADE BASED UPON THE INFORMATION PROVIDED ON THIS WEB SITE OR IN ANY TRANSCRIPT. USERS ARE ADVISED TO REVIEW THE APPLICABLE COMPANY\'S AUDIO PRESENTATION ITSELF AND THE APPLICABLE COMPANY\'S SEC FILINGS BEFORE MAKING ANY INVESTMENT OR OTHER DECISIONS.
+If you have any additional questions about our online transcripts, please contact us at: 
