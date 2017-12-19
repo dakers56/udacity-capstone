@@ -6,8 +6,8 @@ import datetime
 
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-from scipy.sparse.csr import csr_matrix
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
 import numpy as np
 
 
@@ -72,7 +72,8 @@ def get_samples(cnt_vec):
         for file in os.listdir(path):
             X_train.append(vectorize_file(cnt_vec, "%s/%s" % (path, file)))
             y_train.append(symbol)
-    return np.array(X_train), np.array(y_train)
+
+    return train_test_split(np.array(X_train), np.array(y_train))
 
 
 def write_vectorizer(cnt_vec, folder='./', testing=True):
@@ -103,6 +104,7 @@ def target_labels():
     # for symbol in data_folders()
 
 
+
 print("symbols: %s" % symbols())
 
 
@@ -116,8 +118,13 @@ if not os.path.exists(vocab_path):
 else:
     cnt_vec = joblib.load(vocab_path)
 
-X, y = get_samples(cnt_vec)
-print(X)
-print(y)
-print("X.shape: %s" % str(X.shape))
-print("y.shape: %s" % str(y.shape))
+X_train, X_test, y_train, y_test = get_samples(cnt_vec)
+
+print("X_train: %s\n" % X_train)
+print("X_test: %s\n" % X_test)
+print("y_train: %s\n" % y_train)
+print("y_test: %s\n" % y_test)
+print("X_train.shape: %s\n" % str(X_train.shape))
+print("X_test.shape: %s\n" % str(X_test.shape))
+print("y_train.shape: %s\n" % str(y_train.shape))
+print("y_test.shape: %s\n" % str(y_test.shape))
