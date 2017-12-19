@@ -116,8 +116,24 @@ def all_funds():
             all = all.append(df)
     return all
 
+def get_date(file):
+    file = open(file, 'r')
+    for line in file.readlines():
+        pat = ['F[0-9]Q[0-9]{,4}']
+        for p in pat:
+            m = re.search(p, line)
+            if m:
+                return m.group(0).replace(" ", "_")
+    return "no_date_found"
+
+
+
 if __name__ == '__main__':
-    print(all_funds()['symbol'])
+    test = ['data_backup/seeking_alpha/A/A__August_14,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__February_15,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__May_15,_2007_4:30_pm_ET_']
+    for t in test:
+        print(get_date(t))
+
+
 
     # print("Training model for capstone project")
     # now = time.clock()
