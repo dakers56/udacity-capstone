@@ -5,19 +5,39 @@ import dateutil.parser
 import datetime
 
 from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 
 
 def alphanumerical(text):
-    return re.sub(pattern="^[a-zA-Z0-9\s]", repl="", string=text)
+    return str(re.sub(pattern="[^a-zA-Z0-9\s]", repl="", string=text).replace("\n",""))
 
 
-def build_corpus():
+def stem_file(file):
+    print("Stemming file: %s" % file)
+    lines = [alphanumerical(line) for line in file.readlines()]
+    words = []
+    for line in lines:
+        for word in line.split(" "):
+            words.append(word)
+    return [PorterStemmer().stem(word) for word in words if word not in set(stopwords.words('english'))]
+
+
+def unpack_elements(nested_list):
+    unpacked = []
+    for i in range(len(nested_list)):
+        for element in nested_list[i]:
+            unpacked.append(element)
+    return unpacked
+
+
+def build_corpus(data=None):
     corpus = []
-    for folder in data_folders():
+    for folder in data if data else data_folders():
         for file in os.listdir(folder):
             file = open("%s/%s" % (folder, file))
-            corpus.append(alphanumerical("".join(file.readlines())))
+            for word in stem_file(file):
+                corpus.append(word)
             file.close()
     return corpus
 
@@ -30,17 +50,16 @@ def data_folders():
     return folders
 
 
-def write(cnt_vec, folder='./'):
+def write_vectorizer(cnt_vec, folder='./'):
     now = str(dateutil.parser.parse(str(datetime.datetime.now()))).replace(" ", "_")
     joblib.dump(cnt_vec, "%svocab_%s.pkl" % (folder, now))
 
+
 def get_vectorizer(corpus):
-    return CountVectorizer(stop_words=set(stopwords.words('english'))).fit(corpus)
+    return CountVectorizer(max_features=100).fit(corpus)
 
 
-test_file = open('/Users/devonakers/udacity/capstone/data_backup/seeking_alpha/A/A_August 15, 2017 04:30 PM ET', 'r')
-test_transcript = alphanumerical("".join(test_file.readlines()))
-corpus = build_corpus()
+corpus = build_corpus(data=['/Users/devonakers/udacity/capstone/data_backup/seeking_alpha/A'])
 
 print("Fitting CountVectorizer to determine vocabulary.")
 cnt_vec = get_vectorizer(corpus)
@@ -48,4 +67,4 @@ print("Final vocabulary:")
 for v in cnt_vec.vocabulary_:
     print(str(v))
 
-write(cnt_vec)
+write_vectorizer(cnt_vec)
