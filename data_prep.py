@@ -8,7 +8,7 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
 import numpy as np
 
 
@@ -114,6 +114,6 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = get_samples(cnt_vec)
 
     print("Training classifier")
-    clf = GaussianNB().fit(X_train, y_train)
+    clf = LogisticRegression().fit(X_train, y_train)
     print("Training accuracy: %s" % clf.score(X_train, y_train))
     print("Testing accuracy: %s" % clf.score(X_test, y_test))
