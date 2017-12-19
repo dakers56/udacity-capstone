@@ -8,6 +8,7 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
 import numpy as np
 
 
@@ -73,7 +74,7 @@ def get_samples(cnt_vec):
             X_train.append(vectorize_file(cnt_vec, "%s/%s" % (path, file)))
             y_train.append(symbol)
 
-    return train_test_split(np.array(X_train), np.array(y_train))
+    return train_test_split(X_train, np.array(y_train))
 
 
 def write_vectorizer(cnt_vec, folder='./', testing=True):
@@ -96,35 +97,23 @@ def vectorize_file(cnt_vec, file):
     file = open(file, 'r')
     X = transform(cnt_vec, file.readlines())
     file.close()
-    return X.sum(axis=0, dtype=np.int64)
+    return X.sum(axis=0, dtype=np.int64).getA()[0]
 
 
-def target_labels():
-    targets = []
-    # for symbol in data_folders()
+if __name__ == '__main__':
+    cnt_vec = None
+    vocab_path = 'vocab.pkl'
 
+    if not os.path.exists(vocab_path):
+        corpus = build_corpus()
+        cnt_vec = get_vectorizer(corpus)
+        write_vectorizer(cnt_vec)
+    else:
+        cnt_vec = joblib.load(vocab_path)
 
+    X_train, X_test, y_train, y_test = get_samples(cnt_vec)
 
-print("symbols: %s" % symbols())
-
-
-cnt_vec = None
-vocab_path = 'vocab.pkl'
-
-if not os.path.exists(vocab_path):
-    corpus = build_corpus()
-    cnt_vec = get_vectorizer(corpus)
-    write_vectorizer(cnt_vec)
-else:
-    cnt_vec = joblib.load(vocab_path)
-
-X_train, X_test, y_train, y_test = get_samples(cnt_vec)
-
-print("X_train: %s\n" % X_train)
-print("X_test: %s\n" % X_test)
-print("y_train: %s\n" % y_train)
-print("y_test: %s\n" % y_test)
-print("X_train.shape: %s\n" % str(X_train.shape))
-print("X_test.shape: %s\n" % str(X_test.shape))
-print("y_train.shape: %s\n" % str(y_train.shape))
-print("y_test.shape: %s\n" % str(y_test.shape))
+    print("Training classifier")
+    clf = GaussianNB().fit(X_train, y_train)
+    print("Training accuracy: %s" % clf.score(X_train, y_train))
+    print("Testing accuracy: %s" % clf.score(X_test, y_test))
