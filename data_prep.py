@@ -12,7 +12,8 @@ import numpy as np
 
 
 def alphanumerical(text):
-    return re.sub(pattern=r'[\\]x[0-9a-eA-Z]{1,2}', repl="",string=re.sub(pattern="[^a-zA-Z0-9\s]",repl="", string=text)).replace("\n","")
+    return re.sub(pattern=r'[\\]x[0-9a-eA-Z]{1,2}', repl="",
+                  string=re.sub(pattern="[^a-zA-Z0-9\s]", repl="", string=text)).replace("\n", "")
 
 
 def stem_file(file):
@@ -60,18 +61,22 @@ def write_vectorizer(cnt_vec, folder='./'):
 def get_vectorizer(corpus):
     return CountVectorizer(max_features=1000).fit(corpus)
 
+
 def transform(cnt_vec, string):
     return cnt_vec.transform(string)
+
 
 def vectorize_file(cnt_vec, file):
     file = open(file, 'r')
     X = transform(cnt_vec, file.readlines())
     file.close()
-    return X.sum(axis=0, dtype=np.int8)
+    return X.sum(axis=0, dtype=np.int64)
 
-corpus = build_corpus(data=['/Users/devonakers/udacity/capstone/data_backup/seeking_alpha/A'])
+
+corpus = build_corpus()
 
 cnt_vec = get_vectorizer(corpus)
-X = vectorize_file(cnt_vec, '/Users/devonakers/udacity/capstone/data_backup/seeking_alpha/WRK/WRK_April_29,_2016_10:00_am_ET')
+X = vectorize_file(cnt_vec, 'data_backup/seeking_alpha/AAL/AAL__July_18,_2007_2:00_pm_ET_')
 print(X)
+
 print ("X.shape: %s" % str(X.shape))
