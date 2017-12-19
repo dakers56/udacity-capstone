@@ -67,16 +67,12 @@ def path_to_symbol(symbol):
 def get_samples(cnt_vec):
     X_train = []
     y_train = []
-    paths = []
     for symbol in symbols():
         path = path_to_symbol(symbol)
         for file in os.listdir(path):
-            paths.append("%s/%s" % (path, file))
             X_train.append(vectorize_file(cnt_vec, "%s/%s" % (path, file)))
             y_train.append(symbol)
-    if (len(X_train)) != (len(y_train)):
-        print("Number of training examples does not match number of files")
-    return np.array(X_train), np.array(y_train), paths
+    return np.array(X_train), np.array(y_train)
 
 
 def write_vectorizer(cnt_vec, folder='./', testing=True):
@@ -120,10 +116,8 @@ if not os.path.exists(vocab_path):
 else:
     cnt_vec = joblib.load(vocab_path)
 
-X, y, paths = get_samples(cnt_vec)
+X, y = get_samples(cnt_vec)
 print(X)
 print(y)
-print(paths)
 print("X.shape: %s" % str(X.shape))
 print("y.shape: %s" % str(y.shape))
-print("paths.shape: %s" % str(y.shape))
