@@ -56,15 +56,14 @@ def write_vectorizer(cnt_vec, folder='./'):
 
 
 def get_vectorizer(corpus):
-    return CountVectorizer(max_features=100).fit(corpus)
+    return CountVectorizer(max_features=1000).fit(corpus)
 
+def transform(cnt_vec, string):
+    return cnt_vec.transform(string)
 
 corpus = build_corpus(data=['/Users/devonakers/udacity/capstone/data_backup/seeking_alpha/A'])
 
-print("Fitting CountVectorizer to determine vocabulary.")
+file = open('/Users/devonakers/udacity/capstone/data_backup/seeking_alpha/WRK/WRK_April_26,_2017,_08:30_AM_ET', 'r')
 cnt_vec = get_vectorizer(corpus)
-print("Final vocabulary:")
-for v in cnt_vec.vocabulary_:
-    print(str(v))
-
-write_vectorizer(cnt_vec)
+print(transform(cnt_vec, ["ub repres evan competitor ago vice far hello mention"]))
+file.close()
