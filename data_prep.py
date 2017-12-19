@@ -53,9 +53,38 @@ def data_folders():
     return folders
 
 
-def write_vectorizer(cnt_vec, folder='./'):
+def symbols():
+    symbols = set()
+    for path in data_folders():
+        symbols.add(path.split("/")[-1])
+    return symbols
+
+
+def path_to_symbol(symbol):
+    return 'data_backup/seeking_alpha/%s' % symbol
+
+
+def get_samples(cnt_vec):
+    X_train = []
+    y_train = []
+    paths = []
+    for symbol in symbols():
+        path = path_to_symbol(symbol)
+        for file in os.listdir(path):
+            paths.append("%s/%s" % (path, file))
+            X_train.append(vectorize_file(cnt_vec, "%s/%s" % (path, file)))
+            y_train.append(symbol)
+    if (len(X_train)) != (len(y_train)):
+        print("Number of training examples does not match number of files")
+    return np.array(X_train), np.array(y_train), paths
+
+
+def write_vectorizer(cnt_vec, folder='./', testing=True):
     now = str(dateutil.parser.parse(str(datetime.datetime.now()))).replace(" ", "_")
-    joblib.dump(cnt_vec, "%svocab_%s.pkl" % (folder, now))
+    if not testing:
+        joblib.dump(cnt_vec, "%svocab_%s.pkl" % (folder, now))
+        return
+    joblib.dump(cnt_vec, "vocab.pkl")
 
 
 def get_vectorizer(corpus):
@@ -73,10 +102,28 @@ def vectorize_file(cnt_vec, file):
     return X.sum(axis=0, dtype=np.int64)
 
 
-corpus = build_corpus()
+def target_labels():
+    targets = []
+    # for symbol in data_folders()
 
-cnt_vec = get_vectorizer(corpus)
-X = vectorize_file(cnt_vec, 'data_backup/seeking_alpha/AAL/AAL__July_18,_2007_2:00_pm_ET_')
+
+print("symbols: %s" % symbols())
+
+
+cnt_vec = None
+vocab_path = 'vocab.pkl'
+
+if not os.path.exists(vocab_path):
+    corpus = build_corpus()
+    cnt_vec = get_vectorizer(corpus)
+    write_vectorizer(cnt_vec)
+else:
+    cnt_vec = joblib.load(vocab_path)
+
+X, y, paths = get_samples(cnt_vec)
 print(X)
-
-print ("X.shape: %s" % str(X.shape))
+print(y)
+print(paths)
+print("X.shape: %s" % str(X.shape))
+print("y.shape: %s" % str(y.shape))
+print("paths.shape: %s" % str(y.shape))
