@@ -6,7 +6,9 @@ import datetime
 
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+from scipy.sparse.csr import csr_matrix
 from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
 
 
 def alphanumerical(text):
@@ -65,9 +67,11 @@ def vectorize_file(cnt_vec, file):
     file = open(file, 'r')
     X = transform(cnt_vec, file.readlines())
     file.close()
-    return X
+    return X.sum(axis=0, dtype=np.int8)
 
 corpus = build_corpus(data=['/Users/devonakers/udacity/capstone/data_backup/seeking_alpha/A'])
 
 cnt_vec = get_vectorizer(corpus)
-print(vectorize_file(cnt_vec, '/Users/devonakers/udacity/capstone/data_backup/seeking_alpha/WRK/WRK_April_29,_2016_10:00_am_ET'))
+X = vectorize_file(cnt_vec, '/Users/devonakers/udacity/capstone/data_backup/seeking_alpha/WRK/WRK_April_29,_2016_10:00_am_ET')
+print(X)
+print ("X.shape: %s" % str(X.shape))
