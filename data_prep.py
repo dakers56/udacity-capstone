@@ -66,7 +66,7 @@ def path_to_symbol(symbol):
     return 'data_backup/seeking_alpha/%s' % symbol
 
 
-def get_samples(cnt_vec):
+def transcript_samples(cnt_vec):
     X_train = []
     y_train = []
     for symbol in symbols():
@@ -102,7 +102,8 @@ def vectorize_file(cnt_vec, file):
 
 
 def read_fund(file):
-    return pd.read_csv(file)
+    return pd.read_csv(file).drop('symbol', axis=1).drop('end_date', axis=1).drop('amend', axis=1).drop('doc_type', axis=1)
+
 
 def all_funds():
     all = None
@@ -116,16 +117,6 @@ def all_funds():
             all = all.append(df)
     return all
 
-class QuarterYearFormat:
-    def __init__(self, regex, format_func):
-        self.regex = regex
-        self.format_func = format_func
-
-    def matches(self, string):
-        return re.search(self.regex, string)
-
-    def format(self, string):
-        self.format_func(string)
 
 def swap_str(string, ch1, ch2):
     ch1_index = string.index(ch1)
@@ -135,6 +126,7 @@ def swap_str(string, ch1, ch2):
     as_list[ch2_index] = ch1
     return str(as_list)
 
+
 def swap_at_ind(string, i1, i2):
     string = list(string)
     temp = string[i1]
@@ -142,8 +134,10 @@ def swap_at_ind(string, i1, i2):
     string[i2] = temp
     return "".join(string)
 
+
 def swap_NQ(nq_or_qn):
     return swap_at_ind(nq_or_qn, 0, 1)
+
 
 def get_NQYY(string):
     is_nqyy = re.search("[0-4]Q[0-9]{2,4}", string)
@@ -167,13 +161,16 @@ def get_NQYY(string):
         match = swap_NQ(is_nqyy.group(0))
         return match[1:3], match[-2:]
 
+
 def get_N(qn_or_nq):
     return re.search("[0-4]", qn_or_nq).group(0)
+
 
 def get_date(file):
     file = open(file, 'r')
     for line in file.readlines():
-        pat1 = [r'F[0-4]Q\s[0-9]{4}', 'F[0-4]Q[0-9]{,4}', r'Q[0-4]\s[0-9]{,4}', 'Q[0-4] [0-9]{2,4}', 'F[1-4]Q\\s[0-9]{2,4}']
+        pat1 = [r'F[0-4]Q\s[0-9]{4}', 'F[0-4]Q[0-9]{,4}', r'Q[0-4]\s[0-9]{,4}', 'Q[0-4] [0-9]{2,4}',
+                'F[1-4]Q\\s[0-9]{2,4}']
         # pat1 = ['F[0-4]Q[0-9]{,4}', r'Q[0-4]\s[0-9]{,4}', 'Q[0-4] [0-9]{2,4}', 'F[1-4]Q\\s[0-9]{2,4}']
 
         for p in pat1:
@@ -183,37 +180,35 @@ def get_date(file):
     return "no_date_found"
 
 
-def format(quarter):
-    return
+def feature_vector(cnt_vec, transcript_file, quarter, year):
+    fv = vectorize_file(cnt_vec, transcript_file)
+    fv = np.append(fv, quarter)
+    fv = np.append(fv, year)
+    return fv
+
 
 if __name__ == '__main__':
-    base = 'data_backup/seeking_alpha/A'
-    total_correct = 0
-    total = 0
-    for base in data_folders():
-        for t in os.listdir(base):
-            date = get_date(base + '/' + str(t))
-            total += 1
-            if date != 'no_date_found' and date is not None:
-                total_correct += 1
-            print('%s: %s' % (t, str(date)))
-    print('total correct: %s' % total_correct)
-    print('total: %s' % total)
+    drop_fields = ['symbol', 'end_date', 'amend', 'doc_type']
+    print(read_fund('fundamentals/A'))
+    # base = 'data_backup/seeking_alpha/A'
+    # total_correct = 0
+    # total = 0
+    # for base in data_folders():
+    #     for t in os.listdir(base):
+    #         date = get_date(base + '/' + str(t))
+    #         total += 1
+    #         if date != 'no_date_found' and date is not None:
+    #             total_correct += 1
+    #         print('%s: %s' % (t, str(date)))
+    # print('total correct: %s' % total_correct)
+    # print('total: %s' % total)
 
-
-    # f = 'data_backup/seeking_alpha/A/A_February_13,_2014,_4:30_p.m._ET'
     # print('%s: %s' % (f, str(get_date(f))))
     # print(swap_str("F3Q07", "Q", "3"))
     # print(get_NQYY("F3Q07"))
     # print(get_NQYY("FQ407"))
     # print(get_NQYY("F14Q07"))
     # print(get_NQYY("FQ2Q07"))
-
-
-
-
-
-
 
     # print("Training model for capstone project")
     # now = time.clock()
@@ -226,8 +221,12 @@ if __name__ == '__main__':
     #     write_vectorizer(cnt_vec)
     # else:
     #     cnt_vec = joblib.load(vocab_path)
-    #
-    # X_train, X_test, y_train, y_test = get_samples(cnt_vec)
+
+    # f = feature_vector(cnt_vec, transcript_file='data_backup/seeking_alpha/A/A__August_14,_2007_4:30_pm_ET_',
+    #                    quarter='Q1', year='07')
+    # print("Feature vector:")
+    # print(f)
+    # X_train, X_test, y_train, y_test = transcript_samples(cnt_vec)
     #
     # print("Training classifier")
     # clf = GaussianNB().fit(X_train, y_train)
