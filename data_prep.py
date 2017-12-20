@@ -158,6 +158,14 @@ def get_NQYY(string):
     if is_nqyy:
         match = swap_NQ(is_nqyy.group(0))
         return match[:2], match[2:]
+    is_nqyy = re.search('F[1-4]Q\\s[0-9]{2,4}', string)
+    if is_nqyy:
+        match = swap_NQ(is_nqyy.group(0))
+        return match[1:3], match[-2:]
+    is_nqyy = re.search(r'F[0-4]Q\s[0-9]{4}', string)
+    if is_nqyy:
+        match = swap_NQ(is_nqyy.group(0))
+        return match[1:3], match[-2:]
 
 def get_N(qn_or_nq):
     return re.search("[0-4]", qn_or_nq).group(0)
@@ -165,7 +173,9 @@ def get_N(qn_or_nq):
 def get_date(file):
     file = open(file, 'r')
     for line in file.readlines():
-        pat1 = ['F[0-4]Q[0-9]{,4}', r'Q[0-4]\s[0-9]{,4}', 'Q1 2006']
+        pat1 = [r'F[0-4]Q\s[0-9]{4}', 'F[0-4]Q[0-9]{,4}', r'Q[0-4]\s[0-9]{,4}', 'Q[0-4] [0-9]{2,4}', 'F[1-4]Q\\s[0-9]{2,4}']
+        # pat1 = ['F[0-4]Q[0-9]{,4}', r'Q[0-4]\s[0-9]{,4}', 'Q[0-4] [0-9]{2,4}', 'F[1-4]Q\\s[0-9]{2,4}']
+
         for p in pat1:
             m = re.search(p, line)
             if m:
@@ -177,11 +187,22 @@ def format(quarter):
     return
 
 if __name__ == '__main__':
-    test = ['data_backup/seeking_alpha/A/A__Q1_2006_Earnings_Release_Conference_Call_', 'data_backup/seeking_alpha/A/A__August_14,_2007_4:30_pm_ET_',
-            'data_backup/seeking_alpha/A/A__February_15,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__May_15,_2007_4:30_pm_ET_']
-    for t in test:
-        print('t: %s' % str(get_date(t)))
+    base = 'data_backup/seeking_alpha/A'
+    total_correct = 0
+    total = 0
+    for base in data_folders():
+        for t in os.listdir(base):
+            date = get_date(base + '/' + str(t))
+            total += 1
+            if date != 'no_date_found' and date is not None:
+                total_correct += 1
+            print('%s: %s' % (t, str(date)))
+    print('total correct: %s' % total_correct)
+    print('total: %s' % total)
 
+
+    # f = 'data_backup/seeking_alpha/A/A_February_13,_2014,_4:30_p.m._ET'
+    # print('%s: %s' % (f, str(get_date(f))))
     # print(swap_str("F3Q07", "Q", "3"))
     # print(get_NQYY("F3Q07"))
     # print(get_NQYY("FQ407"))
