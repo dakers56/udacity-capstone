@@ -145,12 +145,19 @@ def swap_at_ind(string, i1, i2):
 def swap_NQ(nq_or_qn):
     return swap_at_ind(nq_or_qn, 0, 1)
 
-def get_NQ(string):
-    is_nq = re.search("[0-4]Q", string)
-    if is_nq:
-        return is_nq.group(0)
-    is_nq = re.search("Q[0-4]", string)
-    return swap_NQ(is_nq.group(0))
+def get_NQYY(string):
+    is_nqyy = re.search("[0-4]Q[0-9]{2,4}", string)
+    if is_nqyy:
+        match = is_nqyy.group(0)
+        return match[:2], match[2:]
+    is_nqyy = re.search("Q[0-4][0-9]{2,4}", string)
+    if is_nqyy:
+        match = swap_NQ(is_nqyy.group(0))
+        return match[:2], match[2:]
+    is_nqyy = re.search(r'Q[0-4]\s[0-9]{2,4}', string)
+    if is_nqyy:
+        match = swap_NQ(is_nqyy.group(0))
+        return match[:2], match[2:]
 
 def get_N(qn_or_nq):
     return re.search("[0-4]", qn_or_nq).group(0)
@@ -158,11 +165,11 @@ def get_N(qn_or_nq):
 def get_date(file):
     file = open(file, 'r')
     for line in file.readlines():
-        pat1 = [QuarterYearFormat('F[0-4]Q[0-9]{,4}', lambda x : swap_str(x, "Q", )), 'Q[0-4]{1}\\s+[0-9]{,4}']
+        pat1 = ['F[0-4]Q[0-9]{,4}', r'Q[0-4]\s[0-9]{,4}', 'Q1 2006']
         for p in pat1:
             m = re.search(p, line)
             if m:
-                return m.group(0).replace(" ", "_")
+                return get_NQYY(m.group(0))
     return "no_date_found"
 
 
@@ -170,15 +177,16 @@ def format(quarter):
     return
 
 if __name__ == '__main__':
-    # test = ['data_backup/seeking_alpha/A/A__August_14,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__February_15,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__May_15,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__Q1_2006_Earnings_Release_Conference_Call_']
-    # for t in test:
-    #     print('t: %s' % get_date(t))
+    test = ['data_backup/seeking_alpha/A/A__Q1_2006_Earnings_Release_Conference_Call_', 'data_backup/seeking_alpha/A/A__August_14,_2007_4:30_pm_ET_',
+            'data_backup/seeking_alpha/A/A__February_15,_2007_4:30_pm_ET_', 'data_backup/seeking_alpha/A/A__May_15,_2007_4:30_pm_ET_']
+    for t in test:
+        print('t: %s' % str(get_date(t)))
 
     # print(swap_str("F3Q07", "Q", "3"))
-    print(get_NQ("F3Q07"))
-    print(get_NQ("FQ407"))
-    print(get_NQ("F14Q07"))
-    print(get_NQ("FQ2Q07"))
+    # print(get_NQYY("F3Q07"))
+    # print(get_NQYY("FQ407"))
+    # print(get_NQYY("F14Q07"))
+    # print(get_NQYY("FQ2Q07"))
 
 
 
