@@ -66,13 +66,13 @@ def path_to_symbol(symbol):
     return 'data_backup/seeking_alpha/%s' % symbol
 
 
-def transcript_samples(cnt_vec):
+def all_transcript_samples(cnt_vec):
     X_train = []
     y_train = []
     for symbol in symbols():
         path = path_to_symbol(symbol)
         for file in os.listdir(path):
-            X_train.append(vectorize_file(cnt_vec, "%s/%s" % (path, file)))
+            X_train.append(vectorize_transcript(cnt_vec, "%s/%s" % (path, file)))
             y_train.append(symbol)
 
     return train_test_split(X_train, np.array(y_train))
@@ -94,23 +94,41 @@ def transform(cnt_vec, string):
     return cnt_vec.transform(string)
 
 
-def vectorize_file(cnt_vec, file):
+def vectorize_transcript(cnt_vec, file):
     file = open(file, 'r')
     X = transform(cnt_vec, file.readlines())
     file.close()
     return X.sum(axis=0, dtype=np.int64).getA()[0]
 
 
-def read_fund(file):
-    return pd.read_csv(file).drop('symbol', axis=1).drop('end_date', axis=1).drop('amend', axis=1).drop('doc_type', axis=1)
+def vectorize_funds(file):
+    return pd.read_csv(file).drop('symbol', axis=1).drop('end_date', axis=1).drop('amend', axis=1).drop('doc_type',
+                                                                                                        axis=1)
 
+
+def cat_vectors(transcript, funds):
+    print("transcript.shape: %s" % transcript.shape)
+    print("funds.shape: %s" % str(funds.shape))
+    return np.concatenate((transcript, funds))
+
+def funds_exist(symbol):
+    return os.path.exists("fundamentals/%s" % symbol)
+
+def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
+    X_train = []
+    for symbol in os.listdir(base_dir):
+        transcript_path = "%s/%s" % (base_dir, symbol)
+        if funds_exist(symbol):
+            for file in os.listdir(transcript_path):
+                X_train.append(cat_vectors(vectorize_transcript(cnt_vec, "%s/%s" % (transcript_path, file)), vectorize_funds('fundamentals/%s' % symbol)))
+    return X_train
 
 def all_funds():
     all = None
     base_dir = "fundamentals"
     for file in os.listdir(base_dir):
         path = "%s/%s" % (base_dir, file)
-        df = read_fund(path)
+        df = vectorize_funds(path)
         if all is None:
             all = df
         else:
@@ -181,15 +199,14 @@ def get_date(file):
 
 
 def feature_vector(cnt_vec, transcript_file, quarter, year):
-    fv = vectorize_file(cnt_vec, transcript_file)
+    fv = vectorize_transcript(cnt_vec, transcript_file)
     fv = np.append(fv, quarter)
     fv = np.append(fv, year)
     return fv
 
 
 if __name__ == '__main__':
-    drop_fields = ['symbol', 'end_date', 'amend', 'doc_type']
-    print(read_fund('fundamentals/A'))
+
     # base = 'data_backup/seeking_alpha/A'
     # total_correct = 0
     # total = 0
@@ -203,30 +220,23 @@ if __name__ == '__main__':
     # print('total correct: %s' % total_correct)
     # print('total: %s' % total)
 
-    # print('%s: %s' % (f, str(get_date(f))))
-    # print(swap_str("F3Q07", "Q", "3"))
-    # print(get_NQYY("F3Q07"))
-    # print(get_NQYY("FQ407"))
-    # print(get_NQYY("F14Q07"))
-    # print(get_NQYY("FQ2Q07"))
-
-    # print("Training model for capstone project")
-    # now = time.clock()
-    # cnt_vec = None
-    # vocab_path = 'vocab.pkl'
+    print("Training model for capstone project")
+    now = time.clock()
+    cnt_vec = None
+    vocab_path = 'vocab.pkl'
     #
-    # if not os.path.exists(vocab_path):
-    #     corpus = build_corpus()
-    #     cnt_vec = get_vectorizer(corpus)
-    #     write_vectorizer(cnt_vec)
-    # else:
-    #     cnt_vec = joblib.load(vocab_path)
+    if not os.path.exists(vocab_path):
+        corpus = build_corpus()
+        cnt_vec = get_vectorizer(corpus)
+        write_vectorizer(cnt_vec)
+    else:
+        cnt_vec = joblib.load(vocab_path)
 
-    # f = feature_vector(cnt_vec, transcript_file='data_backup/seeking_alpha/A/A__August_14,_2007_4:30_pm_ET_',
-    #                    quarter='Q1', year='07')
-    # print("Feature vector:")
-    # print(f)
-    # X_train, X_test, y_train, y_test = transcript_samples(cnt_vec)
+    X_train = get_input_data(cnt_vec)
+
+    print("Sample from input data:\n%s" % X_train[0])
+
+
     #
     # print("Training classifier")
     # clf = GaussianNB().fit(X_train, y_train)
