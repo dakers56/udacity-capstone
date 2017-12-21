@@ -113,8 +113,15 @@ def vectorize_funds(file):
 
 def cat_vectors(transcript, funds):
     print("transcript.shape: %s" % transcript.shape)
+    # print("transcript: %s" % transcript)
     print("funds.shape: %s" % str(funds.shape))
-    return np.concatenate((transcript, funds))
+    print("np.array(funds).shape: %s" % str(np.array(funds)[0].shape))
+    print(funds)
+    if funds.empty:
+        return None
+    # print('type(funds): %s' % type(funds))
+    # print('type(transcript): %s' % type(transcript))
+    return np.concatenate((transcript, np.array(funds)[0]))
 
 
 def funds_exist(symbol):
@@ -146,10 +153,7 @@ def all_funds():
 
 
 def get_matching_funds(funds, quarter, year):
-    # print(funds['period_focus'])
-    # print(funds['fiscal_year'])
     return funds[(funds.period_focus == quarter) & (funds.fiscal_year == year)]
-
 
 
 def swap_str(string, ch1, ch2):
@@ -222,14 +226,17 @@ def get_date(file):
             m = re.search(p, line)
             if m:
                 return get_NQYYYY(m.group(0))
-    return "no_date_found"
+    return "no_date_found", "no_year_found"
 
 
-def feature_vector(cnt_vec, transcript_file, quarter, year):
-    fv = vectorize_transcript(cnt_vec, transcript_file)
-    fv = np.append(fv, quarter)
-    fv = np.append(fv, year)
-    return fv
+def feature_vector(cnt_vec, transcript_file, funds):
+    quarter, year = get_date(transcript_file)
+    if quarter is "no_date_found":
+        print("No date found for file '%s'" % transcript_file)
+        return None
+    funds_vec = get_matching_funds(funds, quarter, year)
+    transcript_vec = vectorize_transcript(cnt_vec, transcript_file)
+    return cat_vectors(transcript_vec, funds_vec)
 
 
 if __name__ == '__main__':
@@ -246,36 +253,27 @@ if __name__ == '__main__':
     # print('total correct: %s' % total_correct)
     # print('total: %s' % total)
 
-    # print("Training model for capstone project")
-    # now = time.clock()
-    # cnt_vec = None
-    # vocab_path = 'vocab.pkl'
-    # #
-    # if not os.path.exists(vocab_path):
-    #     corpus = build_corpus()
-    #     cnt_vec = get_vectorizer(corpus)
-    #     write_vectorizer(cnt_vec)
-    # else:
-    #     cnt_vec = joblib.load(vocab_path)
+    print("Training model for capstone project")
+    now = time.clock()
+    cnt_vec = None
+    vocab_path = 'vocab.pkl'
+    #
+    if not os.path.exists(vocab_path):
+        corpus = build_corpus()
+        cnt_vec = get_vectorizer(corpus)
+        write_vectorizer(cnt_vec)
+    else:
+        cnt_vec = joblib.load(vocab_path)
 
-    X_train = pd.read_csv('fundamentals/AAP')
-    # print('X_train: %s' % X_train['period_focus'])
     quarter, year = get_date('data_backup/seeking_alpha/AAP/AAP_August_09,_2012_10:00_am_ET')
     print("quarter: %s; year: %s" % (quarter, year))
     # print(X_train)
-    funds = get_matching_funds(funds=X_train, quarter=quarter, year=year)
-    print("Matching funds:\n%s" % funds)
+    funds = vectorize_funds('fundamentals/AAP')
+    transcript_file = 'data_backup/seeking_alpha/AAP/AAP_May_15,_2014_10:00_am_ET'
+    fv = feature_vector(cnt_vec, transcript_file, funds)
+    if fv is None:
+        print("No fundamentals found for file %s" % transcript_file)
+    print("Sample feature vectors:\n%s" % fv)
 
-    # X_train = get_input_data(cnt_vec)
-    #
-    # print("Sample from input data:\n%s" % X_train[0])
-
-
-    #
-    # print("Training classifier")
-    # clf = GaussianNB().fit(X_train, y_train)
-    # print("Training accuracy: %s" % clf.score(X_train, y_train))
-    # print("Testing accuracy: %s" % clf.score(X_test, y_test))
-    #
     # now = time.clock() - now
     # print("Process took %s miliseconds." )
