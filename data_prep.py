@@ -116,8 +116,10 @@ def cat_vectors(transcript, funds):
     print("funds.shape: %s" % str(funds.shape))
     return np.concatenate((transcript, funds))
 
+
 def funds_exist(symbol):
     return os.path.exists("fundamentals/%s" % symbol)
+
 
 def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
     X_train = []
@@ -128,6 +130,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
             for file in os.listdir(transcript_path):
                 quarter, year = get_date(file)
     return X_train
+
 
 def all_funds():
     all = None
@@ -143,11 +146,11 @@ def all_funds():
 
 
 def get_matching_funds(funds, quarter, year):
-    print("Type(funds.period_focus): %s" % type(funds.period_focus))
-    print("Type(funds.fiscal_year): %s" % type(funds.fiscal_year))
-    print("Type(funds.fiscal_year[0]): %s" % type(funds.period_focus[0]))
-    print("Type(funds.fiscal_year[0]): %s" % type(funds.fiscal_year[0]))
+    # print(funds['period_focus'])
+    # print(funds['fiscal_year'])
     return funds[(funds.period_focus == quarter) & (funds.fiscal_year == year)]
+
+
 
 def swap_str(string, ch1, ch2):
     ch1_index = string.index(ch1)
@@ -173,28 +176,39 @@ def swap_NQ(nq_or_qn):
 def get_NQYYYY(string):
     is_nqyy = re.search("[0-4]Q[0-9]{2,4}", string)
     if is_nqyy:
-        match = is_nqyy.group(0)
-        return match[:2], match[2:]
+        match = swap_NQ(is_nqyy.group(0))
+        return match[:2], get_Y(match[2:])
     is_nqyy = re.search("Q[0-4][0-9]{2,4}", string)
     if is_nqyy:
-        match = swap_NQ(is_nqyy.group(0))
-        return match[:2], match[2:]
+        match = is_nqyy.group(0)
+        return match[:2], get_Y(match[2:])
     is_nqyy = re.search(r'Q[0-4]\s[0-9]{2,4}', string)
     if is_nqyy:
-        match = swap_NQ(is_nqyy.group(0))
-        return match[:2], match[2:]
+        match = is_nqyy.group(0)
+        return match[:2], get_Y(match[2:])
     is_nqyy = re.search('F[1-4]Q\\s[0-9]{2,4}', string)
     if is_nqyy:
-        match = swap_NQ(is_nqyy.group(0))
-        return match[1:3], match[-2:]
+        match = is_nqyy.group(0)
+        return match[1:3], get_Y(match[-2:])
     is_nqyy = re.search(r'F[0-4]Q\s[0-9]{4}', string)
     if is_nqyy:
         match = swap_NQ(is_nqyy.group(0))
-        return match[1:3], "20".join(match[-2:])
+        return match[1:3], get_Y(match[-2:])
 
 
 def get_N(qn_or_nq):
     return re.search("[0-4]", qn_or_nq).group(0)
+
+
+def get_Y(string):
+    string = string.strip()
+    if len(string) > 4:
+        raise RuntimeError("Got unexpected year format: more than four digits in '%s'" % string)
+    if len(string) == 4:
+        return int(string)
+    if len(string) == 3:
+        raise RuntimeError("Got unexpected year format: only three digits in '%s'" % string)
+    return int("20".join(string))
 
 
 def get_date(file):
@@ -219,7 +233,6 @@ def feature_vector(cnt_vec, transcript_file, quarter, year):
 
 
 if __name__ == '__main__':
-
     # base = 'data_backup/seeking_alpha/A'
     # total_correct = 0
     # total = 0
@@ -247,9 +260,10 @@ if __name__ == '__main__':
 
     X_train = pd.read_csv('fundamentals/AAP')
     # print('X_train: %s' % X_train['period_focus'])
-    quarter, year = 'Q1', '2014'
+    quarter, year = get_date('data_backup/seeking_alpha/AAP/AAP_August_09,_2012_10:00_am_ET')
+    print("quarter: %s; year: %s" % (quarter, year))
     # print(X_train)
-    funds = get_matching_funds(funds=X_train, quarter='Q1', year=int('2014'))
+    funds = get_matching_funds(funds=X_train, quarter=quarter, year=year)
     print("Matching funds:\n%s" % funds)
 
     # X_train = get_input_data(cnt_vec)
