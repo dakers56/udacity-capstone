@@ -67,15 +67,20 @@ def path_to_symbol(symbol):
 
 
 def all_transcript_samples(cnt_vec):
+    """
+
+    :param cnt_vec: count vectorizer
+    :return: X_train as shuffled dataset, files they come from. Files will be used to pick out dates.
+    """
     X_train = []
-    y_train = []
+    files = []
     for symbol in symbols():
         path = path_to_symbol(symbol)
         for file in os.listdir(path):
             X_train.append(vectorize_transcript(cnt_vec, "%s/%s" % (path, file)))
-            y_train.append(symbol)
+            files.append(symbol)
 
-    return train_test_split(X_train, np.array(y_train))
+    return train_test_split(X_train, files)
 
 
 def write_vectorizer(cnt_vec, folder='./', testing=True):
@@ -118,9 +123,10 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
     X_train = []
     for symbol in os.listdir(base_dir):
         transcript_path = "%s/%s" % (base_dir, symbol)
+        funds = vectorize_funds('fundamentals/%s' % symbol)
         if funds_exist(symbol):
             for file in os.listdir(transcript_path):
-                X_train.append(cat_vectors(vectorize_transcript(cnt_vec, "%s/%s" % (transcript_path, file)), vectorize_funds('fundamentals/%s' % symbol)))
+                quarter, year = get_date(file)
     return X_train
 
 def all_funds():
@@ -135,6 +141,13 @@ def all_funds():
             all = all.append(df)
     return all
 
+
+def get_matching_funds(funds, quarter, year):
+    print("Type(funds.period_focus): %s" % type(funds.period_focus))
+    print("Type(funds.fiscal_year): %s" % type(funds.fiscal_year))
+    print("Type(funds.fiscal_year[0]): %s" % type(funds.period_focus[0]))
+    print("Type(funds.fiscal_year[0]): %s" % type(funds.fiscal_year[0]))
+    return funds[(funds.period_focus == quarter) & (funds.fiscal_year == year)]
 
 def swap_str(string, ch1, ch2):
     ch1_index = string.index(ch1)
@@ -157,7 +170,7 @@ def swap_NQ(nq_or_qn):
     return swap_at_ind(nq_or_qn, 0, 1)
 
 
-def get_NQYY(string):
+def get_NQYYYY(string):
     is_nqyy = re.search("[0-4]Q[0-9]{2,4}", string)
     if is_nqyy:
         match = is_nqyy.group(0)
@@ -177,7 +190,7 @@ def get_NQYY(string):
     is_nqyy = re.search(r'F[0-4]Q\s[0-9]{4}', string)
     if is_nqyy:
         match = swap_NQ(is_nqyy.group(0))
-        return match[1:3], match[-2:]
+        return match[1:3], "20".join(match[-2:])
 
 
 def get_N(qn_or_nq):
@@ -194,7 +207,7 @@ def get_date(file):
         for p in pat1:
             m = re.search(p, line)
             if m:
-                return get_NQYY(m.group(0))
+                return get_NQYYYY(m.group(0))
     return "no_date_found"
 
 
@@ -220,21 +233,28 @@ if __name__ == '__main__':
     # print('total correct: %s' % total_correct)
     # print('total: %s' % total)
 
-    print("Training model for capstone project")
-    now = time.clock()
-    cnt_vec = None
-    vocab_path = 'vocab.pkl'
+    # print("Training model for capstone project")
+    # now = time.clock()
+    # cnt_vec = None
+    # vocab_path = 'vocab.pkl'
+    # #
+    # if not os.path.exists(vocab_path):
+    #     corpus = build_corpus()
+    #     cnt_vec = get_vectorizer(corpus)
+    #     write_vectorizer(cnt_vec)
+    # else:
+    #     cnt_vec = joblib.load(vocab_path)
+
+    X_train = pd.read_csv('fundamentals/AAP')
+    # print('X_train: %s' % X_train['period_focus'])
+    quarter, year = 'Q1', '2014'
+    # print(X_train)
+    funds = get_matching_funds(funds=X_train, quarter='Q1', year=int('2014'))
+    print("Matching funds:\n%s" % funds)
+
+    # X_train = get_input_data(cnt_vec)
     #
-    if not os.path.exists(vocab_path):
-        corpus = build_corpus()
-        cnt_vec = get_vectorizer(corpus)
-        write_vectorizer(cnt_vec)
-    else:
-        cnt_vec = joblib.load(vocab_path)
-
-    X_train = get_input_data(cnt_vec)
-
-    print("Sample from input data:\n%s" % X_train[0])
+    # print("Sample from input data:\n%s" % X_train[0])
 
 
     #
