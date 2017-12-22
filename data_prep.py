@@ -107,8 +107,13 @@ def vectorize_transcript(cnt_vec, file):
 
 
 def vectorize_funds(file):
-    return pd.read_csv(file).drop('symbol', axis=1).drop('end_date', axis=1).drop('amend', axis=1).drop('doc_type',
-                                                                                                        axis=1)
+    if not os.path.exists(file):
+        return None
+    funds = pd.read_csv(file).drop('symbol', axis=1).drop('end_date', axis=1).drop('amend', axis=1).drop('doc_type',
+                                                                                                         axis=1)
+    # eps_key, diluted_eps_key = 'eps_basic', 'eps_diluted'
+    # eps, diluted_eps = funds['eps_basic'], funds['eps_diluted']
+    return funds
 
 
 def cat_vectors(transcript, funds):
@@ -130,13 +135,29 @@ def funds_exist(symbol):
 
 def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
     X_train = []
+    all_eps = []
+    all_diluted_eps = []
     for symbol in os.listdir(base_dir):
         transcript_path = "%s/%s" % (base_dir, symbol)
         funds = vectorize_funds('fundamentals/%s' % symbol)
+        if funds is None:
+            continue
         if funds_exist(symbol):
             for file in os.listdir(transcript_path):
+                file = "%s/%s/%s" % (base_dir, symbol, file)
                 quarter, year = get_date(file)
-    return X_train
+                if quarter is None:
+                    continue
+                these_funds, eps, diluted_eps = get_matching_funds(funds, quarter, year)
+                if these_funds is None:
+                    continue
+                fv = feature_vector(cnt_vec, file, these_funds)
+                if fv is None:
+                    continue
+                X_train.append(fv)
+                all_eps.append(eps)
+                all_diluted_eps.append(diluted_eps)
+    return X_train, all_eps, all_diluted_eps
 
 
 def all_funds():
@@ -153,7 +174,27 @@ def all_funds():
 
 
 def get_matching_funds(funds, quarter, year):
-    return funds[(funds.period_focus == quarter) & (funds.fiscal_year == year)]
+    if year is 'no_year_found':
+        return None, None, None
+    print('quarter: %s' % quarter)
+    print('type(quarter): %s' % type(quarter))
+    print('year: %s' % year)
+    print('type(year): %s' % type(year))
+    match = funds[(funds.period_focus == quarter) & (funds.fiscal_year == year)]
+    if match.empty or match is None:
+        return None, None, None
+    eps, diluted_eps = None, None
+    try:
+        eps, diluted_eps = match['eps_basic'], match['eps_diluted']
+    except KeyError as e:
+        print(funds)
+        raise RuntimeError("Caught key error", e)
+    print('type(match): %s' % match)
+    print('len(match): %s' % len(match))
+    funds = funds.drop(match.index, axis=0)
+    print("REturning matching fundamentals")
+    return match, eps, diluted_eps
+    # return match.copy().drop('eps_basic', axis=1).drop('eps_diluted', axis=1), eps, diluted_eps
 
 
 def swap_str(string, ch1, ch2):
@@ -198,6 +239,7 @@ def get_NQYYYY(string):
     if is_nqyy:
         match = swap_NQ(is_nqyy.group(0))
         return match[1:3], get_Y(match[-2:])
+    return None, None
 
 
 def get_N(qn_or_nq):
@@ -234,7 +276,7 @@ def feature_vector(cnt_vec, transcript_file, funds):
     if quarter is "no_date_found":
         print("No date found for file '%s'" % transcript_file)
         return None
-    funds_vec = get_matching_funds(funds, quarter, year)
+    funds_vec, _, _ = get_matching_funds(funds, quarter, year)
     transcript_vec = vectorize_transcript(cnt_vec, transcript_file)
     return cat_vectors(transcript_vec, funds_vec)
 
@@ -265,15 +307,11 @@ if __name__ == '__main__':
     else:
         cnt_vec = joblib.load(vocab_path)
 
-    quarter, year = get_date('data_backup/seeking_alpha/AAP/AAP_August_09,_2012_10:00_am_ET')
-    print("quarter: %s; year: %s" % (quarter, year))
-    # print(X_train)
-    funds = vectorize_funds('fundamentals/AAP')
-    transcript_file = 'data_backup/seeking_alpha/AAP/AAP_May_15,_2014_10:00_am_ET'
-    fv = feature_vector(cnt_vec, transcript_file, funds)
-    if fv is None:
-        print("No fundamentals found for file %s" % transcript_file)
-    print("Sample feature vectors:\n%s" % fv)
+    all_input, all_eps, all_diluted_eps = get_input_data(cnt_vec)
+    print("len(all_input): %s" % len(all_input))
+    # print('input:\n%s' % all_input)
+    # print('eps:\n%s' % all_eps)
 
-    # now = time.clock() - now
-    # print("Process took %s miliseconds." )
+
+# now = time.clock() - now
+# print("Process took %s miliseconds." )
