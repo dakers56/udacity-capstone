@@ -132,11 +132,21 @@ def cat_vectors(transcript, funds):
 def funds_exist(symbol):
     return os.path.exists("fundamentals/%s" % symbol)
 
+class UnprocessedFileList:
+    def __init__(self):
+        self.no_q = []
+        self.no_y = []
+        self.no_funds = []
+        self.no_date_found = []
+    def len(self):
+        return len(self.no_q) + len(self.no_y) + len(self.no_funds) + len(self.no_date_found)
 
 def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
     X_train = []
     all_eps = []
     all_diluted_eps = []
+    not_processed = UnprocessedFileList()
+
     for symbol in os.listdir(base_dir):
         transcript_path = "%s/%s" % (base_dir, symbol)
         funds = vectorize_funds('fundamentals/%s' % symbol)
@@ -147,17 +157,20 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 file = "%s/%s/%s" % (base_dir, symbol, file)
                 quarter, year = get_date(file)
                 if quarter is None:
+                    not_processed.no_q.append(file)
                     continue
                 these_funds, eps, diluted_eps = get_matching_funds(funds, quarter, year)
                 if these_funds is None:
+                    not_processed.no_funds.append(file)
                     continue
                 fv = feature_vector(cnt_vec, file, these_funds)
                 if fv is None:
+                    not_processed.no_date_found.append(file)
                     continue
                 X_train.append(fv)
                 all_eps.append(eps)
                 all_diluted_eps.append(diluted_eps)
-    return X_train, all_eps, all_diluted_eps
+    return X_train, all_eps, all_diluted_eps, not_processed
 
 
 def all_funds():
@@ -307,8 +320,15 @@ if __name__ == '__main__':
     else:
         cnt_vec = joblib.load(vocab_path)
 
-    all_input, all_eps, all_diluted_eps = get_input_data(cnt_vec)
-    print("len(all_input): %s" % len(all_input))
+    all_input, all_eps, all_diluted_eps, not_processed = get_input_data(cnt_vec)
+    print("Number of processed vectors: %s" % len(all_input))
+    print("Number of unprocessed vectors: %s" % str(not_processed.len()))
+    print('Reasons for not processing:')
+    print('No year: %s' % not_processed.no_y)
+    print('No quarter: %s' % not_processed.no_q)
+    print('No fundamentals file: %s' % not_processed.no_funds)
+    print('Could not parse data from file: %s' % not_processed.no_date_found)
+
     # print('input:\n%s' % all_input)
     # print('eps:\n%s' % all_eps)
 
