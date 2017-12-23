@@ -9,14 +9,13 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LinearRegression
 import numpy as np
 
 
 def alphanumerical(text):
     return re.sub(pattern=r'[\\]x[0-9a-eA-Z]{1,2}', repl="",
                   string=re.sub(pattern="[^a-zA-Z0-9\s]", repl="", string=text)).replace("\n", "")
-
 
 def stem_file(file):
     print("Stemming file: %s" % file)
@@ -148,6 +147,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
     not_processed = UnprocessedFileList()
 
     for symbol in os.listdir(base_dir):
+        print('symbol: %s' % symbol)
         transcript_path = "%s/%s" % (base_dir, symbol)
         funds = vectorize_funds('fundamentals/%s' % symbol)
         if funds is None:
@@ -295,24 +295,11 @@ def feature_vector(cnt_vec, transcript_file, funds):
 
 
 if __name__ == '__main__':
-    # base = 'data_backup/seeking_alpha/A'
-    # total_correct = 0
-    # total = 0
-    # for base in data_folders():
-    #     for t in os.listdir(base):
-    #         date = get_date(base + '/' + str(t))
-    #         total += 1
-    #         if date != 'no_date_found' and date is not None:
-    #             total_correct += 1
-    #         print('%s: %s' % (t, str(date)))
-    # print('total correct: %s' % total_correct)
-    # print('total: %s' % total)
-
     print("Training model for capstone project")
     now = time.clock()
     cnt_vec = None
     vocab_path = 'vocab.pkl'
-    #
+
     if not os.path.exists(vocab_path):
         corpus = build_corpus()
         cnt_vec = get_vectorizer(corpus)
@@ -329,9 +316,14 @@ if __name__ == '__main__':
     print('No fundamentals file: %s' % not_processed.no_funds)
     print('Could not parse data from file: %s' % not_processed.no_date_found)
 
-    # print('input:\n%s' % all_input)
-    # print('eps:\n%s' % all_eps)
+    print("Performing linear regression of transcripts and fundamentals vs basic eps.")
+    X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
+    all_eps = np.log(all_eps)
+    lin_reg = LinearRegression()
+    print("Fitting data")
+    lin_reg.fit(X_train, y_train)
+    print("Performance on test data:")
+    print(lin_reg.score(X_test, y_test))
 
-
-# now = time.clock() - now
-# print("Process took %s miliseconds." )
+now = time.clock() - now
+print("Process took %s seconds." % (now / 1000))
