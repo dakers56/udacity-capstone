@@ -244,6 +244,7 @@ def get_matching_funds(funds, quarter, year, drop_and_replace=False):
     print('year: %s' % year)
     print('type(year): %s' % type(year))
     funds1 = funds
+    print("Fundamentals df:\n" % funds)
     match = funds[(funds.period_focus == quarter) & (funds.fiscal_year == year)]
     if match.empty or match is None:
         print("Did not find quarter and year in datafram:\n%s" % match)
