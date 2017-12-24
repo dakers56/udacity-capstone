@@ -213,7 +213,7 @@ def get_matching_funds(funds, quarter, year, drop_and_replace=False):
         return None, None, None
     eps, diluted_eps = None, None
     try:
-        eps, diluted_eps = match['eps_basic'], match['eps_diluted']
+        eps, diluted_eps = match['eps_basic'].iloc[0], match['eps_diluted'].iloc[0]
     except KeyError as e:
         print(funds)
         raise RuntimeError("Caught key error", e)
