@@ -172,7 +172,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 if fv is None:
                     not_processed.no_date_found.append(file)
                     continue
-                print("Appending to X_train, which is type %s" % type(X_train)
+                print("Appending to X_train, which is type %s" % type(X_train))
                 try:
                     X_train.append(fv)
                 except AttributeError:
