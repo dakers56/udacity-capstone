@@ -145,11 +145,11 @@ class UnprocessedFileList:
         return len(self.no_q) + len(self.no_y) + len(self.no_funds) + len(self.no_date_found)
 
 def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
-    X_train = []
-    all_eps = []
-    all_diluted_eps = []
+    X_train_ = []
+    all_eps_ = []
+    all_diluted_eps_ = []
     not_processed = UnprocessedFileList()
-    print("Type X_train: %s" % type(X_train))
+    print("Type X_train: %s" % type(X_train_))
     for symbol in os.listdir(base_dir):
         print('symbol: %s' % symbol)
         transcript_path = "%s/%s" % (base_dir, symbol)
@@ -172,41 +172,44 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 if fv is None:
                     not_processed.no_date_found.append(file)
                     continue
-                print("Appending to X_train, which is type %s" % type(X_train))
-                try:
-                    print("X_train: %s" % X_train)
-                    print("Shape of X_train: %s" % X_train.shape)
-                    print("fv: %s" % fv)
-                    print("Shape of fv: %s" % fv.shape)
-                    X_train.append(fv)
-                except AttributeError:
-                    np.concatenate((X_train, fv), axis=0)
-                try:
-                    print("all_eps: %s" % all_eps)
-                    print("eps: %s" % eps)
-                    all_eps.append(eps)
-                except AttributeError:
-                    print("Shape of all_eps: %s" % str(all_eps.shape))
-                    print("Shape of eps: %s" % str(np.array([eps]).shape))
-                    np.concatenate((all_eps, np.array([eps])), axis=0)
-                try:
-                    print("all_diluted_eps: %s" % all_diluted_eps)
-                    print("diluted_eps: %s" % diluted_eps)
-                    all_diluted_eps.append(np.array([diluted_eps]))
-                except AttributeError:
-                    print("Shape of all_diluted_eps: %s" % str(all_diluted_eps.shape))
-                    print("Shape of all_diluted_eps: %s" % str(np.array([diluted_eps]).shape))
-                    np.concatenate((all_diluted_eps, np.array([diluted_eps])), axis=0)
-                for x in X_train:
+                print("Appending to X_train, which is type %s" % type(X_train_))
+                X_train_.append(fv)
+                all_eps_.append(eps)
+                all_diluted_eps_.append(diluted_eps)
+                # try:
+                #     print("X_train: %s" % X_train)
+                #     print("Shape of X_train: %s" % X_train.shape)
+                #     print("fv: %s" % fv)
+                #     print("Shape of fv: %s" % fv.shape)
+                #     X_train.append(fv)
+                # except AttributeError:
+                #     np.concatenate((X_train, fv), axis=0)
+                # try:
+                #     print("all_eps: %s" % all_eps)
+                #     print("eps: %s" % eps)
+                #     all_eps.append(eps)
+                # except AttributeError:
+                #     print("Shape of all_eps: %s" % str(all_eps.shape))
+                #     print("Shape of eps: %s" % str(np.array([eps]).shape))
+                #     np.concatenate((all_eps, np.array([eps])), axis=0)
+                # try:
+                #     print("all_diluted_eps: %s" % all_diluted_eps)
+                #     print("diluted_eps: %s" % diluted_eps)
+                #     all_diluted_eps.append(np.array([diluted_eps]))
+                # except AttributeError:
+                #     print("Shape of all_diluted_eps: %s" % str(all_diluted_eps.shape))
+                #     print("Shape of all_diluted_eps: %s" % str(np.array([diluted_eps]).shape))
+                #     np.concatenate((all_diluted_eps, np.array([diluted_eps])), axis=0)
+                for x in X_train_:
                     print("x: %s" % x) 
                     print("type(x): %s" % type(x))
-                print('X_train: %s' % X_train)
-                X_train = np.array(X_train, dtype=np.float64)
-                print("X_train: %s" % X_train)
-                print("all_eps: %s" % all_eps)
-                all_eps = np.array(all_eps)
-                all_diluted_eps = np.array(all_diluted_eps)                
-    return np.array(X_train), np.array(all_eps), np.array(all_diluted_eps), not_processed
+                print('X_train: %s' % X_train_)
+                X_train_ = np.array(X_train_, dtype=np.float64)
+                print("X_train: %s" % X_train_)
+                print("all_eps: %s" % all_eps_)
+                all_eps_ = np.array(all_eps_)
+                all_diluted_eps_ = np.array(all_diluted_eps_)
+    return np.array(X_train_), np.array(all_eps_), np.array(all_diluted_eps_), not_processed
 
 
 def all_funds():
