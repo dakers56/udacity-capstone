@@ -199,8 +199,8 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 except AttributeError:
                     print("Shape of all_diluted_eps: %s" % str(all_diluted_eps_.shape))
                     print('dluted_eps: %s' % str(diluted_eps))
-                    print("Shape of diluted_eps: %s" % str(np.array(diluted_eps).shape))
-                    np.concatenate(((all_diluted_eps_, np.array(diluted_eps))), axis=0)
+                    print("Shape of diluted_eps: %s" % str(np.array([diluted_eps]).shape))
+                    np.concatenate(((all_diluted_eps_, np.array([diluted_eps]))), axis=0)
                 for x in X_train_:
                     print("x: %s" % x) 
                     print("type(x): %s" % type(x))
