@@ -149,7 +149,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
     all_eps = []
     all_diluted_eps = []
     not_processed = UnprocessedFileList()
-
+    print("Type X_train: %s" % type(X_train))
     for symbol in os.listdir(base_dir):
         print('symbol: %s' % symbol)
         transcript_path = "%s/%s" % (base_dir, symbol)
