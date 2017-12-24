@@ -175,7 +175,9 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 print("Appending to X_train, which is type %s" % type(X_train))
                 try:
                     print("X_train: %s" % X_train)
+                    print("Shape of X_train: %s" % X_train.shape)
                     print("fv: %s" % fv)
+                    print("Shape of fv: %s" % fv.shape)
                     X_train.append(fv)
                 except AttributeError:
                     np.concatenate((X_train, fv), axis=0)
