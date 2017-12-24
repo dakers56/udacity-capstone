@@ -163,6 +163,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
             print("Fund")
             continue
         if funds_exist(symbol):
+
             for file in os.listdir(transcript_path):
                 file = "%s/%s/%s" % (base_dir, symbol, file)
                 print("File: %s" % file)
@@ -216,6 +217,8 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 print("all_eps: %s" % all_eps_)
                 all_eps_ = np.array(all_eps_)
                 all_diluted_eps_ = np.array(all_diluted_eps_)
+        else:
+            print("Fundamentals did not exist for %s" % symbol)
     return np.array(X_train_), np.array(all_eps_), np.array(all_diluted_eps_), not_processed
 
 
