@@ -225,7 +225,7 @@ def get_matching_funds(funds, quarter, year, drop_and_replace=False):
         m = match['period_focus']
         m.iloc[0] = int(funds['period_focus'].iloc[0].replace('Q', ''))
     #funds['fiscal_year']
-    print("Returning matching fundamentals:\n%s" % m)
+    print("Returning matching fundamentals:\n%s" % str(match))
     return match, eps, diluted_eps
     # return match.copy().drop('eps_basic', axis=1).drop('eps_diluted', axis=1), eps, diluted_eps
 
