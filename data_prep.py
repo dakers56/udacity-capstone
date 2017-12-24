@@ -313,6 +313,7 @@ def get_NQYYYY(string):
     if is_nqyy:
         match = swap_NQ(is_nqyy.group(0))
         return match[1:3], get_Y(match[-2:])
+    print("Did not find matching date pattern. String: '%s'" % string)
     return None, None
 
 
