@@ -198,13 +198,14 @@ def all_funds():
     return all
 
 
-def get_matching_funds(funds, quarter, year):
+def get_matching_funds(funds, quarter, year, drop_and_replace=False):
     if year is 'no_year_found':
         return None, None, None
     print('quarter: %s' % quarter)
     print('type(quarter): %s' % type(quarter))
     print('year: %s' % year)
     print('type(year): %s' % type(year))
+    funds1 = funds
     match = funds[(funds.period_focus == quarter) & (funds.fiscal_year == year)]
     if match.empty or match is None:
         return None, None, None
@@ -219,10 +220,10 @@ def get_matching_funds(funds, quarter, year):
 
     print('type(match[\'period_focus\']: %s' % type(match['period_focus']))
     print('type(match[\'period_focus\'.iloc(0)]: %s' % type(match['period_focus'].iloc[0]))
-    funds = funds.drop(match.index, axis=0)
-    
-    m = match['period_focus'] 
-    m.iloc[0] = int(funds['period_focus'].iloc[0].replace('Q', '')) 
+    if drop_and_replace:
+        funds = funds.drop(match.index, axis=0)
+        m = match['period_focus']
+        m.iloc[0] = int(funds['period_focus'].iloc[0].replace('Q', ''))
     #funds['fiscal_year']
     print("Returning matching fundamentals:\n%s" % m)
     return match, eps, diluted_eps
@@ -314,7 +315,7 @@ def feature_vector(cnt_vec, transcript_file, funds):
     if quarter is "no_date_found":
         print("No date found for file '%s'" % transcript_file)
         return None
-    funds_vec, _, _ = get_matching_funds(funds, quarter, year)
+    funds_vec, _, _ = get_matching_funds(funds, quarter, year, drop_and_replace=True)
     transcript_vec = vectorize_transcript(cnt_vec, transcript_file)
     if funds_vec is None:
         print("Funds was 'None'")
