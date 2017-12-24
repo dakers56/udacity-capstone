@@ -172,8 +172,11 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 if fv is None:
                     not_processed.no_date_found.append(file)
                     continue
-                print("Type X_train: %s" % type(X_train))
-                X_train.append(fv)
+                print("Appending to X_train, which is type %s" % type(X_train)
+                try:
+                    X_train.append(fv)
+                except AttributeError:
+                    np.concatenate(X_train, fv)
                 all_eps.append(eps)
                 all_diluted_eps.append(diluted_eps)
                 for x in X_train:
