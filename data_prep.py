@@ -187,7 +187,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 try:
                     print("all_eps: %s" % all_eps_)
                     print("eps: %s" % eps)
-                    all_eps.append(eps)
+                    all_eps_.append(eps)
                 except AttributeError:
                     print("Shape of all_eps: %s" % str(all_eps_.shape))
                     print("Shape of eps: %s" % str(np.array([eps]).shape))
