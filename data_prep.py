@@ -221,6 +221,7 @@ def get_matching_funds(funds, quarter, year, drop_and_replace=False):
     print('type(match[\'period_focus\']: %s' % type(match['period_focus']))
     print('type(match[\'period_focus\'.iloc(0)]: %s' % type(match['period_focus'].iloc[0]))
     if drop_and_replace:
+        print("m : %s" % m)
         funds = funds.drop(match.index, axis=0)
         m = match['period_focus']
         m.iloc[0] = int(funds['period_focus'].iloc[0].replace('Q', ''))
