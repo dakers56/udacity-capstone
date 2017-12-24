@@ -1,6 +1,6 @@
 import re
 import os
-import math 
+import math
 import joblib
 import dateutil.parser
 import datetime
@@ -17,6 +17,7 @@ import numpy as np
 def alphanumerical(text):
     return re.sub(pattern=r'[\\]x[0-9a-eA-Z]{1,2}', repl="",
                   string=re.sub(pattern="[^a-zA-Z0-9\s]", repl="", string=text)).replace("\n", "")
+
 
 def stem_file(file):
     print("Stemming file: %s" % file)
@@ -108,6 +109,7 @@ def vectorize_transcript(cnt_vec, file):
 
 def vectorize_funds(file):
     if not os.path.exists(file):
+        print("Path to fundamentals '%s' did not exist." % file)
         return None
     funds = pd.read_csv(file).drop('symbol', axis=1).drop('end_date', axis=1).drop('amend', axis=1).drop('doc_type',
                                                                                                          axis=1)
@@ -135,14 +137,17 @@ def cat_vectors(transcript, funds):
 def funds_exist(symbol):
     return os.path.exists("fundamentals/%s" % symbol)
 
+
 class UnprocessedFileList:
     def __init__(self):
         self.no_q = []
         self.no_y = []
         self.no_funds = []
         self.no_date_found = []
+
     def len(self):
         return len(self.no_q) + len(self.no_y) + len(self.no_funds) + len(self.no_date_found)
+
 
 def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
     X_train_ = []
@@ -155,6 +160,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
         transcript_path = "%s/%s" % (base_dir, symbol)
         funds = vectorize_funds('fundamentals/%s' % symbol)
         if funds is None:
+            print("Fund")
             continue
         if funds_exist(symbol):
             for file in os.listdir(transcript_path):
@@ -202,7 +208,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     print("Shape of diluted_eps: %s" % str(np.array([diluted_eps]).shape))
                     np.concatenate(((all_diluted_eps_, np.array([diluted_eps]))), axis=0)
                 for x in X_train_:
-                    print("x: %s" % x) 
+                    print("x: %s" % x)
                     print("type(x): %s" % type(x))
                 print('X_train: %s' % X_train_)
                 X_train_ = np.array(X_train_, dtype=np.float64)
@@ -253,7 +259,7 @@ def get_matching_funds(funds, quarter, year, drop_and_replace=False):
         print("m : %s" % m)
         m.iloc[0] = int(funds['period_focus'].iloc[0].replace('Q', ''))
         funds = funds.drop(match.index, axis=0)
-    #funds['fiscal_year']
+    # funds['fiscal_year']
     print("Returning matching fundamentals:\n%s" % str(match))
     return match, eps, diluted_eps
     # return match.copy().drop('eps_basic', axis=1).drop('eps_diluted', axis=1), eps, diluted_eps
@@ -315,8 +321,8 @@ def get_Y(string, debug=True):
     if len(string) == 4:
         return int(string)
     if len(string) == 3:
-        if(debug):
-            print("3 digit string: %s" % string)   
+        if (debug):
+            print("3 digit string: %s" % string)
         print("Returning string '%s'" % "2".join(string))
         return int("2".join(string))
     return int("20".join(string))
@@ -375,34 +381,34 @@ if __name__ == '__main__':
     print('Could not parse data from file: %s' % not_processed.no_date_found)
 
     print("Performing linear regression of transcripts and fundamentals vs basic eps.")
-    #all_eps = all_eps.apply(math.log)
-    #all_eps = pd.Series(all_eps) 
+    # all_eps = all_eps.apply(math.log)
+    # all_eps = pd.Series(all_eps)
     print("type all_eps: %s" % all_eps)
     print("type all_input: %s" % all_input)
     X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
-    #print("X_train type: %s" % type(X_train))
-    #print("X_test type: %s" % type(X_test))
-    #print("y_train: %s" % type(y_train))
-    #print("y_test: %s" % type(y_test))    
-    print("X_train: %s" % X_train)    
-    print("X_test: %s" % X_test)    
-    #print("y_train: %s" % y_train)   
-    #print("y_test: %s" % y_test)    
-    #print("Elements of arrays:")
-    #print("el 0: %s" % X_train[0])
-    #print("type(el 0): %s" % type(X_train[0]))
-    #print("type el -1: %s" % type(X_train[-1]))
-    #print("el -1: %s" % X_train[-1])
+    # print("X_train type: %s" % type(X_train))
+    # print("X_test type: %s" % type(X_test))
+    # print("y_train: %s" % type(y_train))
+    # print("y_test: %s" % type(y_test))
+    print("X_train: %s" % X_train)
+    print("X_test: %s" % X_test)
+    # print("y_train: %s" % y_train)
+    # print("y_test: %s" % y_test)
+    # print("Elements of arrays:")
+    # print("el 0: %s" % X_train[0])
+    # print("type(el 0): %s" % type(X_train[0]))
+    # print("type el -1: %s" % type(X_train[-1]))
+    # print("el -1: %s" % X_train[-1])
     lin_reg = LinearRegression()
     print("Fitting data")
     print("Performance on test data:")
     print('Shape of X_train: %s' % X_train.shape)
     print('Shape of y_train: %s' % y_train.shape)
     lin_reg.fit(X_train, y_train)
-    #lin_reg.fit(X_train, X_train)
-    #lin_reg.fit(X_train, X_train)
-    #lin_reg.fit(y_test, y_test)
-    #lin_reg.fit(y_train, y_train)
+    # lin_reg.fit(X_train, X_train)
+    # lin_reg.fit(X_train, X_train)
+    # lin_reg.fit(y_test, y_test)
+    # lin_reg.fit(y_train, y_train)
     print(lin_reg.score(X_test, y_test))
     now = time.clock() - now
     print("Process took %s seconds." % (now / 1000))
