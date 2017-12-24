@@ -119,6 +119,9 @@ def vectorize_funds(file):
 def cat_vectors(transcript, funds):
     print("transcript.shape: %s" % transcript.shape)
     # print("transcript: %s" % transcript)
+    if funds is None:
+        print('Found None as funds')
+        return None
     print("funds.shape: %s" % str(funds.shape))
     print("np.array(funds).shape: %s" % str(np.array(funds)[0].shape))
     print(funds)
@@ -176,6 +179,9 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     print("x: %s" % x) 
                     print("type(x): %s" % type(x))
                 print('X_train: %s' % X_train)
+                X_train = np.array(X_train, dtype=np.float64)
+                all_eps = np.array(all_eps)
+                all_diluted_eps = np.array(all_diluted_eps)                
     return np.array(X_train), np.array(all_eps), np.array(all_diluted_eps), not_processed
 
 
@@ -208,10 +214,17 @@ def get_matching_funds(funds, quarter, year):
     except KeyError as e:
         print(funds)
         raise RuntimeError("Caught key error", e)
-    print('type(match): %s' % match)
     print('len(match): %s' % len(match))
+    print('type(match): %s' % type(match))
+
+    print('type(match[\'period_focus\']: %s' % type(match['period_focus']))
+    print('type(match[\'period_focus\'.iloc(0)]: %s' % type(match['period_focus'].iloc[0]))
     funds = funds.drop(match.index, axis=0)
-    print("REturning matching fundamentals")
+    
+    m = match['period_focus'] 
+    m.iloc[0] = int(funds['period_focus'].iloc[0].replace('Q', '')) 
+    #funds['fiscal_year']
+    print("Returning matching fundamentals:\n%s" % m)
     return match, eps, diluted_eps
     # return match.copy().drop('eps_basic', axis=1).drop('eps_diluted', axis=1), eps, diluted_eps
 
@@ -303,6 +316,9 @@ def feature_vector(cnt_vec, transcript_file, funds):
         return None
     funds_vec, _, _ = get_matching_funds(funds, quarter, year)
     transcript_vec = vectorize_transcript(cnt_vec, transcript_file)
+    if funds_vec is None:
+        print("Funds was 'None'")
+        return None
     return cat_vectors(transcript_vec, funds_vec)
 
 
@@ -338,18 +354,20 @@ if __name__ == '__main__':
     #print("X_test type: %s" % type(X_test))
     #print("y_train: %s" % type(y_train))
     #print("y_test: %s" % type(y_test))    
-    #print("X_train: %s" % X_train)    
-    #print("X_test: %s" % X_test)    
+    print("X_train: %s" % X_train)    
+    print("X_test: %s" % X_test)    
     #print("y_train: %s" % y_train)   
     #print("y_test: %s" % y_test)    
-    print("Elements of arrays:")
-    print("el 0: %s" % X_train[0])
-    print("type(el 0): %s" % type(X_train[0]))
-    print("type el -1: %s" % type(X_train[-1]))
-    print("el -1: %s" % X_train[-1])
+    #print("Elements of arrays:")
+    #print("el 0: %s" % X_train[0])
+    #print("type(el 0): %s" % type(X_train[0]))
+    #print("type el -1: %s" % type(X_train[-1]))
+    #print("el -1: %s" % X_train[-1])
     lin_reg = LinearRegression()
     print("Fitting data")
     print("Performance on test data:")
+    print('Shape of X_train: %s' % X_train.shape)
+    print('Shape of y_train: %s' % y_train.shape)
     lin_reg.fit(X_train, y_train)
     #lin_reg.fit(X_train, X_train)
     #lin_reg.fit(X_train, X_train)
