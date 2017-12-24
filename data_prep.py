@@ -178,7 +178,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     print("fv: %s" % fv)
                     X_train.append(fv)
                 except AttributeError:
-                    np.concatenate(X_train, fv, axis=0)
+                    np.concatenate((X_train, fv), axis=0)
                 all_eps.append(eps)
                 all_diluted_eps.append(diluted_eps)
                 for x in X_train:
