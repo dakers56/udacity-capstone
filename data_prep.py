@@ -237,6 +237,7 @@ def all_funds():
 
 def get_matching_funds(funds, quarter, year, drop_and_replace=False):
     if year is 'no_year_found':
+        print("No year found")
         return None, None, None
     print('quarter: %s' % quarter)
     print('type(quarter): %s' % type(quarter))
@@ -245,6 +246,7 @@ def get_matching_funds(funds, quarter, year, drop_and_replace=False):
     funds1 = funds
     match = funds[(funds.period_focus == quarter) & (funds.fiscal_year == year)]
     if match.empty or match is None:
+        print("Did not find quarter and year in datafram:\n%s" % match)
         return None, None, None
     eps, diluted_eps = None, None
     try:
