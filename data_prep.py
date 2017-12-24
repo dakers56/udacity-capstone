@@ -1,5 +1,6 @@
 import re
 import os
+import math 
 import joblib
 import dateutil.parser
 import datetime
@@ -102,7 +103,7 @@ def vectorize_transcript(cnt_vec, file):
     file = open(file, 'r')
     X = transform(cnt_vec, file.readlines())
     file.close()
-    return X.sum(axis=0, dtype=np.int64).getA()[0]
+    return X.sum(axis=0, dtype=np.float64).getA()[0]
 
 
 def vectorize_funds(file):
@@ -155,6 +156,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
         if funds_exist(symbol):
             for file in os.listdir(transcript_path):
                 file = "%s/%s/%s" % (base_dir, symbol, file)
+                print("File: %s" % file)
                 quarter, year = get_date(file)
                 if quarter is None:
                     not_processed.no_q.append(file)
@@ -170,7 +172,11 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 X_train.append(fv)
                 all_eps.append(eps)
                 all_diluted_eps.append(diluted_eps)
-    return X_train, all_eps, all_diluted_eps, not_processed
+                for x in X_train:
+                    print("x: %s" % x) 
+                    print("type(x): %s" % type(x))
+                print('X_train: %s' % X_train)
+    return np.array(X_train), np.array(all_eps), np.array(all_diluted_eps), not_processed
 
 
 def all_funds():
@@ -259,14 +265,17 @@ def get_N(qn_or_nq):
     return re.search("[0-4]", qn_or_nq).group(0)
 
 
-def get_Y(string):
+def get_Y(string, debug=True):
     string = string.strip()
     if len(string) > 4:
         raise RuntimeError("Got unexpected year format: more than four digits in '%s'" % string)
     if len(string) == 4:
         return int(string)
     if len(string) == 3:
-        raise RuntimeError("Got unexpected year format: only three digits in '%s'" % string)
+        if(debug):
+            print("3 digit string: %s" % string)   
+        print("Returning string '%s'" % "2".join(string))
+        return int("2".join(string))
     return int("20".join(string))
 
 
@@ -280,7 +289,10 @@ def get_date(file):
         for p in pat1:
             m = re.search(p, line)
             if m:
-                return get_NQYYYY(m.group(0))
+                try:
+                    return get_NQYYYY(m.group(0))
+                except RuntimeError:
+                    break
     return "no_date_found", "no_year_found"
 
 
@@ -308,7 +320,7 @@ if __name__ == '__main__':
         cnt_vec = joblib.load(vocab_path)
 
     all_input, all_eps, all_diluted_eps, not_processed = get_input_data(cnt_vec)
-    print("Number of processed vectors: %s" % len(all_input))
+    print("Number of processed vectors: %s" % all_input.size)
     print("Number of unprocessed vectors: %s" % str(not_processed.len()))
     print('Reasons for not processing:')
     print('No year: %s' % not_processed.no_y)
@@ -317,13 +329,32 @@ if __name__ == '__main__':
     print('Could not parse data from file: %s' % not_processed.no_date_found)
 
     print("Performing linear regression of transcripts and fundamentals vs basic eps.")
+    #all_eps = all_eps.apply(math.log)
+    #all_eps = pd.Series(all_eps) 
+    print("type all_eps: %s" % all_eps)
+    print("type all_input: %s" % all_input)
     X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
-    all_eps = np.log(all_eps)
+    #print("X_train type: %s" % type(X_train))
+    #print("X_test type: %s" % type(X_test))
+    #print("y_train: %s" % type(y_train))
+    #print("y_test: %s" % type(y_test))    
+    #print("X_train: %s" % X_train)    
+    #print("X_test: %s" % X_test)    
+    #print("y_train: %s" % y_train)   
+    #print("y_test: %s" % y_test)    
+    print("Elements of arrays:")
+    print("el 0: %s" % X_train[0])
+    print("type(el 0): %s" % type(X_train[0]))
+    print("type el -1: %s" % type(X_train[-1]))
+    print("el -1: %s" % X_train[-1])
     lin_reg = LinearRegression()
     print("Fitting data")
-    lin_reg.fit(X_train, y_train)
     print("Performance on test data:")
+    lin_reg.fit(X_train, y_train)
+    #lin_reg.fit(X_train, X_train)
+    #lin_reg.fit(X_train, X_train)
+    #lin_reg.fit(y_test, y_test)
+    #lin_reg.fit(y_train, y_train)
     print(lin_reg.score(X_test, y_test))
-
-now = time.clock() - now
-print("Process took %s seconds." % (now / 1000))
+    now = time.clock() - now
+    print("Process took %s seconds." % (now / 1000))
