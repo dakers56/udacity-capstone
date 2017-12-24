@@ -181,8 +181,22 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     X_train.append(fv)
                 except AttributeError:
                     np.concatenate((X_train, fv), axis=0)
-                all_eps.append(eps)
-                all_diluted_eps.append(diluted_eps)
+                try:
+                    print("all_eps: %s" % all_eps)
+                    print("Shape of all_eps: %s" % all_eps.shape)
+                    print("eps: %s" % eps)
+                    print("Shape of eps: %s" % eps.shape)
+                    all_eps.append(eps)
+                except AttributeError:
+                    np.concatenate((all_eps, eps), axis=0)
+                try:
+                    print("all_diluted_eps: %s" % all_diluted_eps)
+                    print("Shape of all_eps: %s" % all_diluted_eps.shape)
+                    print("diluted_eps: %s" % diluted_eps)
+                    print("Shape of eps: %s" % diluted_eps.shape)
+                    all_diluted_eps.append(eps)
+                except AttributeError:
+                    np.concatenate((all_diluted_eps, eps), axis=0)
                 for x in X_train:
                     print("x: %s" % x) 
                     print("type(x): %s" % type(x))
