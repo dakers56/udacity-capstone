@@ -180,6 +180,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     print("type(x): %s" % type(x))
                 print('X_train: %s' % X_train)
                 X_train = np.array(X_train, dtype=np.float64)
+                print("X_train: %s" % X_train)
                 all_eps = np.array(all_eps)
                 all_diluted_eps = np.array(all_diluted_eps)                
     return np.array(X_train), np.array(all_eps), np.array(all_diluted_eps), not_processed
