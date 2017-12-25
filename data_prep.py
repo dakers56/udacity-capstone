@@ -188,6 +188,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     X_train_ = np.array([fv])
                 else:
                     print("Shape fv: %s" % fv.shape)
+                    print('X_train: %s' % X_train_)
                     X_train_ = np.append(X_train_, fv, axis=0)
                     print("Shape X_train_: %s" % X_train_.shape)
 
