@@ -192,29 +192,15 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     X_train_ = np.append(X_train_, np.array([fv]), axis=0)
                     print("Shape X_train_: %s" % str(X_train_.shape))
 
-
-
-                # try:
-                #     print("X_train: %s" % X_train_)
-                #     print("Shape of X_train: %s" % X_train_.shape)
-                #     print("fv: %s" % fv)
-                #     print("Shape of fv: %s" % fv.shape)
-                #     X_train_.append(fv)
-                # except AttributeError:
-                #     if X_train_ is []:
-                #         X_train_ = np.array([[]])
-                #         print('Initial X_train shape: %s' % X_train_.shape)
-                #     X_train_ = np.concatenate((X_train_, fv), axis=0)
-
                 if all_eps_ is None:
                     all_eps_ = np.array([eps])
                 else:
-                    all_eps_ = np.append(all_eps_, eps, axis=0)
+                    all_eps_ = np.append(all_eps_, np.array([eps]), axis=0)
 
                 if all_diluted_eps_ is None:
                     all_diluted_eps_ = np.array([diluted_eps])
                 else:
-                    all_diluted_eps_ = np.append(all_diluted_eps_, diluted_eps, axis=0)
+                    all_diluted_eps_ = np.append(all_diluted_eps_, np.array([diluted_eps]), axis=0)
 
                 # try:
                 #     print("all_eps: %s" % all_eps_)
