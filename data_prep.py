@@ -184,8 +184,11 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     continue
 
                 if X_train_ is None:
+                    print("Shape fv: %s" % fv.shape)
                     X_train_ = np.array([fv])
                 else:
+                    print("Shape fv: %s" % fv.shape)
+                    print("Shape X_train_: %s" % X_train_.shape)
                     X_train_ = np.append(X_train_, fv, axis=0)
 
 
