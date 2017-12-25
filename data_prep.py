@@ -190,6 +190,9 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     print("Shape of fv: %s" % fv.shape)
                     X_train_.append(fv)
                 except AttributeError:
+                    if X_train_ is []:
+                        X_train_ = np.array([[]])
+                        print('Initial X_train shape: %s' % X_train_.shape)
                     X_train_ = np.concatenate((X_train_, fv), axis=0)
                 try:
                     print("all_eps: %s" % all_eps_)
