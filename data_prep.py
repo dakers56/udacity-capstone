@@ -160,7 +160,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
         transcript_path = "%s/%s" % (base_dir, symbol)
         funds = vectorize_funds('fundamentals/%s' % symbol)
         if funds is None:
-            print("Fund")
+            print("Fund was None")
             continue
         if funds_exist(symbol):
 
@@ -198,7 +198,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 except AttributeError:
                     print("Shape of all_eps: %s" % str(all_eps_.shape))
                     print("Shape of np.array(eps): %s" % str(np.array([eps]).shape))
-                    np.concatenate((all_eps_, np.array([eps])), axis=0)
+                    all_eps_ = np.concatenate((all_eps_, np.array([eps])), axis=0)
                 try:
                     print("all_diluted_eps: %s" % all_diluted_eps_)
                     print("diluted_eps: %s" % diluted_eps)
@@ -207,7 +207,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     print("Shape of all_diluted_eps: %s" % str(all_diluted_eps_.shape))
                     print('dluted_eps: %s' % str(diluted_eps))
                     print("Shape of diluted_eps: %s" % str(np.array([diluted_eps]).shape))
-                    np.concatenate(((all_diluted_eps_, np.array([diluted_eps]))), axis=0)
+                    all_diluted_eps_= np.concatenate(((all_diluted_eps_, np.array([diluted_eps]))), axis=0)
                 for x in X_train_:
                     print("x: %s" % x)
                     print("type(x): %s" % type(x))
