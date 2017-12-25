@@ -410,10 +410,24 @@ if __name__ == '__main__':
     print("type shape of all_eps: %s" % all_eps.shape)
     print("shape of all_input: %s" % str(all_input.shape))
     X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
+
     is_finite, first_failure = check_all_finite(X_train)
     if not is_finite:
         print("Bad entry: %s" % first_failure)
         exit()
+    is_finite, first_failure = check_all_finite(X_test)
+    if not is_finite:
+        print("Bad entry: %s" % first_failure)
+        exit()
+    is_finite, first_failure = check_all_finite(y_train)
+    if not is_finite:
+        print("Bad entry: %s" % first_failure)
+        exit()
+    is_finite, first_failure = check_all_finite(y_test)
+    if not is_finite:
+        print("Bad entry: %s" % first_failure)
+        exit()
+
     print("X_train shape: %s" % str(X_train.shape))
     print("X_test shape: %s" % str(X_test.shape))
     print('Shape of y_train: %s' % str(y_train.shape))
