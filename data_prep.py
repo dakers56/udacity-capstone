@@ -375,8 +375,8 @@ def feature_vector(cnt_vec, transcript_file, funds):
 def check_all_finite(X_train):
     for x in X_train:
         if not check_finite(x):
-            return False, x
-    return True, None
+            X_train = X_train.drop(x.index, axis=0)
+
 
 def check_finite(X):
         if (X.dtype.char in np.typecodes['AllFloat'] and not np.isfinite(X.sum())
@@ -411,22 +411,10 @@ if __name__ == '__main__':
     print("shape of all_input: %s" % str(all_input.shape))
     X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
 
-    is_finite, first_failure = check_all_finite(X_train)
-    if not is_finite:
-        print("Bad entry: %s" % first_failure)
-        exit()
-    is_finite, first_failure = check_all_finite(X_test)
-    if not is_finite:
-        print("Bad entry: %s" % first_failure)
-        exit()
-    is_finite, first_failure = check_all_finite(y_train)
-    if not is_finite:
-        print("Bad entry: %s" % first_failure)
-        exit()
-    is_finite, first_failure = check_all_finite(y_test)
-    if not is_finite:
-        print("Bad entry: %s" % first_failure)
-        exit()
+    check_all_finite(X_train)
+    check_all_finite(X_test)
+    check_all_finite(y_train)
+    check_all_finite(y_test)
 
     print("X_train shape: %s" % str(X_train.shape))
     print("X_test shape: %s" % str(X_test.shape))
