@@ -207,9 +207,6 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     print('dluted_eps: %s' % str(diluted_eps))
                     print("Shape of diluted_eps: %s" % str(np.array([diluted_eps]).shape))
                     all_diluted_eps_= np.concatenate(((all_diluted_eps_, np.array([diluted_eps]))), axis=0)
-                for x in X_train_:
-                    print("x: %s" % x)
-                    print("type(x): %s" % type(x))
                 print('X_train: %s' % X_train_)
                 X_train_ = np.array(X_train_, dtype=np.float64)
                 print("X_train: %s" % X_train_)
