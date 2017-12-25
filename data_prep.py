@@ -372,6 +372,17 @@ def feature_vector(cnt_vec, transcript_file, funds):
         return None
     return cat_vectors(transcript_vec, funds_vec)
 
+def check_all_finite(X_train):
+    for x in X_train:
+        if not check_finite(x):
+            return False, x
+    return True, None
+
+def check_finite(X):
+        if (X.dtype.char in np.typecodes['AllFloat'] and not np.isfinite(X.sum())
+            and not np.isfinite(X).all()):
+            return False
+        return True
 
 if __name__ == '__main__':
     print("Training model for capstone project")
@@ -399,6 +410,10 @@ if __name__ == '__main__':
     print("type shape of all_eps: %s" % all_eps.shape)
     print("shape of all_input: %s" % str(all_input.shape))
     X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
+    is_finite, first_failure = check_all_finite(X_train)
+    if not is_finite:
+        print("Bad entry: %s" % first_failure)
+        exit()
     print("X_train shape: %s" % str(X_train.shape))
     print("X_test shape: %s" % str(X_test.shape))
     print('Shape of y_train: %s' % str(y_train.shape))
