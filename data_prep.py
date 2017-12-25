@@ -209,7 +209,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 if all_eps_ is None:
                     all_eps_ = np.array([eps])
                 else:
-                    all_eps_ = np.append(all_eps, eps, axis=0)
+                    all_eps_ = np.append(all_eps_, eps, axis=0)
 
                 if all_diluted_eps_ is None:
                     all_diluted_eps_ = np.array([diluted_eps])
