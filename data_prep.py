@@ -11,6 +11,7 @@ from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.utils.validation import _assert_all_finite
 import numpy as np
 
 
@@ -260,13 +261,13 @@ def get_matching_funds(funds, quarter, year, drop_and_replace=False):
     eps, diluted_eps = None, None
     try:
         eps, diluted_eps = match['eps_basic'].iloc[0], match['eps_diluted'].iloc[0]
-        is_finite = np.all(np.isfinite(eps))
-        if not is_finite:
-            print('eps was not finite: %s' % str(eps))
-            return None, None, None
+        _assert_all_finite(eps)
     except KeyError as e:
         print(funds)
         raise RuntimeError("Caught key error", e)
+    except ValueError:
+        print('eps value was not finite: %s' % eps)
+        return None, None, None
     print('len(match): %s' % len(match))
     print('type(match): %s' % type(match))
 
@@ -455,17 +456,17 @@ if __name__ == '__main__':
     print("y_test shape: %s" % str(y_test.shape))    
     check_dim(X_train, y_train)
     check_dim(X_test, y_test)
-    X_train1, y_train1 = check_all_finite(X_train, y_train)
-    X_test1, y_test1 = check_all_finite(X_test, y_test)
+    # X_train1, y_train1 = check_all_finite(X_train, y_train)
+    # X_test1, y_test1 = check_all_finite(X_test, y_test)
 
-    print("X_train shape: %s" % str(X_train1.shape))
-    print("X_test shape: %s" % str(X_test1.shape))
-    print('Shape of y_train: %s' % str(y_train1.shape))
-    print('Shape of y_test: %s' % str(y_test1.shape))
+    print("X_train shape: %s" % str(X_train.shape))
+    print("X_test shape: %s" % str(X_test.shape))
+    print('Shape of y_train: %s' % str(y_train.shape))
+    print('Shape of y_test: %s' % str(y_test.shape))
     lin_reg = LinearRegression()
     print("Fitting data")
     print("Performance on test data:")
-    lin_reg.fit(X_train1, y_train1)
-    print(lin_reg.score(X_test1, y_test1))
+    lin_reg.fit(X_train, y_train)
+    print(lin_reg.score(X_test, y_test))
     now = time.clock() - now
     print("Process took %s seconds." % (now / 1000))
