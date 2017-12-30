@@ -430,10 +430,10 @@ def check_finite(X):
     return True
 
 def write_to_file(X, file, ds_name):
-    file = open('w', file)
+    file = open(file, 'w')
     file.write(ds_name + ':\n')
     for x in X:
-        file.write(str(x))
+        file.write(str(x) + '\n')
     file.close()
 
 if __name__ == '__main__':
