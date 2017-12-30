@@ -260,6 +260,10 @@ def get_matching_funds(funds, quarter, year, drop_and_replace=False):
     eps, diluted_eps = None, None
     try:
         eps, diluted_eps = match['eps_basic'].iloc[0], match['eps_diluted'].iloc[0]
+        is_finite = np.all(np.isfinite(eps))
+        if not is_finite:
+            print('eps was not finite: %s' % str(eps))
+            return None, None, None
     except KeyError as e:
         print(funds)
         raise RuntimeError("Caught key error", e)
@@ -372,17 +376,50 @@ def feature_vector(cnt_vec, transcript_file, funds):
         return None
     return cat_vectors(transcript_vec, funds_vec)
 
-def check_all_finite(X_train):
-    for x in X_train:
-        if not check_finite(x):
-            X_train = X_train.drop(x.index, axis=0)
+def bad_rows(X,is_X=True):
+    bad = []
+    from sklearn.utils.validation import assert_all_finite
+    for i in range(X.shape[0]):
+        try:
+            assert_all_finite(X[i])
+        except ValueError:
+            print("Index %s was not finite" % i)
+            bad.append(i)
+            print_bad(X[i], i, is_X)
+    return bad
 
+def print_bad(X_train, k, is_X=True):
+    print('Dataset shape: %s' % X_train.shape)
+    finite = np.isfinite(X_train)
+    print("Bad entries in row %s" % k)
+    for i in range(finite.shape[0]):
+        if is_X:
+            for j in range(X_train.shape[1]):
+                if not finite[i][j]:
+                    print("(%s,%s)  -> %s" % (i, j, X_train[i][j]))
+        else:
+            if not finite[i]:
+                print("(%s,)  -> %s" % (i,X_train[i]))
+
+def check_dim(X, y):
+    x1 = X.shape[0]
+    y1 = y.shape[0]
+    if not  (x1 == y1):
+        print("X and y did not have same first dimension X: %s; y: %s." % (X, y))
+
+def check_all_finite(X_train,y_train):
+    bad = bad_rows(X_train)
+    bad.append(bad_rows(y_train, is_X=False))
+    print("Removing rows %s" % str(bad))
+    if bad:
+        X_train = np.delete(X_train, bad, axis=0)
+        y_train =  np.delete(y_train, bad, axis=0)
+    return X_train, y_train
 
 def check_finite(X):
-        if (X.dtype.char in np.typecodes['AllFloat'] and not np.isfinite(X.sum())
-            and not np.isfinite(X).all()):
-            return False
-        return True
+    if not np.isfinite(X):
+        return False    
+    return True
 
 if __name__ == '__main__':
     print("Training model for capstone project")
@@ -411,19 +448,24 @@ if __name__ == '__main__':
     print("shape of all_input: %s" % str(all_input.shape))
     X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
 
-    check_all_finite(X_train)
-    check_all_finite(X_test)
-    check_all_finite(y_train)
-    check_all_finite(y_test)
-
+    print("Before removing bad rows:")
     print("X_train shape: %s" % str(X_train.shape))
+    print("y_train shape: %s" % str(y_train.shape))
     print("X_test shape: %s" % str(X_test.shape))
-    print('Shape of y_train: %s' % str(y_train.shape))
-    print('Shape of y_test: %s' % str(y_test.shape))
+    print("y_test shape: %s" % str(y_test.shape))    
+    check_dim(X_train, y_train)
+    check_dim(X_test, y_test)
+    X_train1, y_train1 = check_all_finite(X_train, y_train)
+    X_test1, y_test1 = check_all_finite(X_test, y_test)
+
+    print("X_train shape: %s" % str(X_train1.shape))
+    print("X_test shape: %s" % str(X_test1.shape))
+    print('Shape of y_train: %s' % str(y_train1.shape))
+    print('Shape of y_test: %s' % str(y_test1.shape))
     lin_reg = LinearRegression()
     print("Fitting data")
     print("Performance on test data:")
-    lin_reg.fit(X_train, y_train)
-    print(lin_reg.score(X_test, y_test))
+    lin_reg.fit(X_train1, y_train1)
+    print(lin_reg.score(X_test1, y_test1))
     now = time.clock() - now
     print("Process took %s seconds." % (now / 1000))
