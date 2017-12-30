@@ -105,7 +105,14 @@ def vectorize_transcript(cnt_vec, file):
     file = open(file, 'r')
     X = transform(cnt_vec, file.readlines())
     file.close()
-    return X.sum(axis=0, dtype=np.float64).getA()[0]
+    try:
+        X = X.sum(axis=0, dtype=np.float64).getA()[0]
+        _assert_all_finite(X)
+        return X
+    except ValueError:
+        print('Transcript contained invalid value' % X)
+        return None
+
 
 
 def vectorize_funds(file):
