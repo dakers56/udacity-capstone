@@ -429,6 +429,13 @@ def check_finite(X):
         return False    
     return True
 
+def write_to_file(X, file, ds_name):
+    file = open('w', file)
+    file.write(ds_name + ':\n')
+    for x in X:
+        file.write(str(x))
+    file.close()
+
 if __name__ == '__main__':
     print("Training model for capstone project")
     now = time.clock()
@@ -458,9 +465,13 @@ if __name__ == '__main__':
 
     print("Before removing bad rows:")
     print("X_train shape: %s" % str(X_train.shape))
+    write_to_file(X_train, 'x_train.out', 'x_train')
     print("y_train shape: %s" % str(y_train.shape))
+    write_to_file(y_train, 'y_train.out', 'y_train')
     print("X_test shape: %s" % str(X_test.shape))
-    print("y_test shape: %s" % str(y_test.shape))    
+    write_to_file(X_train, 'x_test.out', 'x_test')
+    print("y_test shape: %s" % str(y_test.shape))
+    write_to_file(X_train, 'y_test.out', 'y_test')
     check_dim(X_train, y_train)
     check_dim(X_test, y_test)
     # X_train1, y_train1 = check_all_finite(X_train, y_train)
