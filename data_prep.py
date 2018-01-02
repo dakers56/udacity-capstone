@@ -114,7 +114,6 @@ def vectorize_transcript(cnt_vec, file):
         return None
 
 
-
 def vectorize_funds(file):
     if not os.path.exists(file):
         print("Path to fundamentals '%s' did not exist." % file)
@@ -210,29 +209,6 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 else:
                     all_diluted_eps_ = np.append(all_diluted_eps_, np.array([diluted_eps]), axis=0)
 
-                # try:
-                #     print("all_eps: %s" % all_eps_)
-                #     print("eps: %s" % eps)
-                #     all_eps_.append(eps)
-                # except AttributeError:
-                #     print("Shape of all_eps: %s" % str(all_eps_.shape))
-                #     print("Shape of np.array(eps): %s" % str(np.array([eps]).shape))
-                #     all_eps_ = np.concatenate((all_eps_, np.array([eps])), axis=0)
-                # try:
-                #     print("all_diluted_eps: %s" % all_diluted_eps_)
-                #     print("diluted_eps: %s" % diluted_eps)
-                #     all_diluted_eps_.append(diluted_eps)
-                # except AttributeError:
-                #     print('dluted_eps: %s' % str(diluted_eps))
-                #     print("Shape of diluted_eps: %s" % str(np.array([diluted_eps]).shape))
-                #     all_diluted_eps_= np.concatenate(((all_diluted_eps_, np.array([diluted_eps]))), axis=0)
-
-                # print('X_train: %s' % X_train_)
-                # X_train_ = np.array(X_train_, dtype=np.float64)
-                # print("X_train: %s" % X_train_)
-                # print("all_eps: %s" % all_eps_)
-                # all_eps_ = np.array(all_eps_)
-                # all_diluted_eps_ = np.array(all_diluted_eps_)
         else:
             print("Fundamentals did not exist for %s" % symbol)
     return X_train_, all_eps_, all_diluted_eps_, not_processed
@@ -384,7 +360,8 @@ def feature_vector(cnt_vec, transcript_file, funds):
         return None
     return cat_vectors(transcript_vec, funds_vec)
 
-def bad_rows(X,is_X=True):
+
+def bad_rows(X, is_X=True):
     bad = []
     from sklearn.utils.validation import assert_all_finite
     for i in range(X.shape[0]):
@@ -395,6 +372,7 @@ def bad_rows(X,is_X=True):
             bad.append(i)
             print_bad(X[i], i, is_X)
     return bad
+
 
 def print_bad(X_train, k, is_X=True):
     print('Dataset shape: %s' % X_train.shape)
@@ -407,27 +385,31 @@ def print_bad(X_train, k, is_X=True):
                     print("(%s,%s)  -> %s" % (i, j, X_train[i][j]))
         else:
             if not finite[i]:
-                print("(%s,)  -> %s" % (i,X_train[i]))
+                print("(%s,)  -> %s" % (i, X_train[i]))
+
 
 def check_dim(X, y):
     x1 = X.shape[0]
     y1 = y.shape[0]
-    if not  (x1 == y1):
+    if not (x1 == y1):
         print("X and y did not have same first dimension X: %s; y: %s." % (X, y))
 
-def check_all_finite(X_train,y_train):
+
+def check_all_finite(X_train, y_train):
     bad = bad_rows(X_train)
     bad.append(bad_rows(y_train, is_X=False))
     print("Removing rows %s" % str(bad))
     if bad:
         X_train = np.delete(X_train, bad, axis=0)
-        y_train =  np.delete(y_train, bad, axis=0)
+        y_train = np.delete(y_train, bad, axis=0)
     return X_train, y_train
+
 
 def check_finite(X):
     if not np.isfinite(X):
-        return False    
+        return False
     return True
+
 
 def write_to_file(X, file, ds_name):
     file = open(file, 'w')
@@ -435,6 +417,24 @@ def write_to_file(X, file, ds_name):
     for x in X:
         file.write(str(x) + '\n')
     file.close()
+
+
+def write_to_error(err_file, tr_ex, tr_lbl):
+    err_file = open(err_file, 'f')
+    err_file.write(str(tr_ex) + ' | ' + str(tr_lbl))
+    err_file.close()
+
+
+def validate_data(tr_ex, tr_lbl):
+    clf = LinearRegression()
+    try:
+        clf.fit(tr_ex, tr_lbl)
+    except ValueError:
+        print("Encountered ValueError while training data")
+        print("Training example: %s" % tr_ex)
+        print("Training label: %s" % tr_lbl)
+        write_to_error('bad_data.out', tr_ex, tr_lbl)
+
 
 if __name__ == '__main__':
     print("Training model for capstone project")
@@ -450,6 +450,9 @@ if __name__ == '__main__':
         cnt_vec = joblib.load(vocab_path)
 
     all_input, all_eps, all_diluted_eps, not_processed = get_input_data(cnt_vec)
+    for (x, y) in (all_input, all_eps):
+        validate_data(x, y)
+
     print("Number of processed vectors: %s" % all_input.size)
     print("Number of unprocessed vectors: %s" % str(not_processed.len()))
     print('Reasons for not processing:')
@@ -458,33 +461,32 @@ if __name__ == '__main__':
     print('No fundamentals file: %s' % not_processed.no_funds)
     print('Could not parse data from file: %s' % not_processed.no_date_found)
 
-    print("Performing linear regression of transcripts and fundamentals vs basic eps.")
-    print("type shape of all_eps: %s" % all_eps.shape)
-    print("shape of all_input: %s" % str(all_input.shape))
-    X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
+    # print("Performing linear regression of transcripts and fundamentals vs basic eps.")
+    # print("type shape of all_eps: %s" % all_eps.shape)
+    # print("shape of all_input: %s" % str(all_input.shape))
+    # X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
+    #
+    # print("Before removing bad rows:")
+    # print("X_train shape: %s" % str(X_train.shape))
+    # write_to_file(X_train, 'x_train.out', 'x_train')
+    # print("y_train shape: %s" % str(y_train.shape))
+    # write_to_file(y_train, 'y_train.out', 'y_train')
+    # print("X_test shape: %s" % str(X_test.shape))
+    # write_to_file(X_train, 'x_test.out', 'x_test')
+    # print("y_test shape: %s" % str(y_test.shape))
+    # write_to_file(X_train, 'y_test.out', 'y_test')
+    # check_dim(X_train, y_train)
+    # check_dim(X_test, y_test)
 
-    print("Before removing bad rows:")
-    print("X_train shape: %s" % str(X_train.shape))
-    write_to_file(X_train, 'x_train.out', 'x_train')
-    print("y_train shape: %s" % str(y_train.shape))
-    write_to_file(y_train, 'y_train.out', 'y_train')
-    print("X_test shape: %s" % str(X_test.shape))
-    write_to_file(X_train, 'x_test.out', 'x_test')
-    print("y_test shape: %s" % str(y_test.shape))
-    write_to_file(X_train, 'y_test.out', 'y_test')
-    check_dim(X_train, y_train)
-    check_dim(X_test, y_test)
-    # X_train1, y_train1 = check_all_finite(X_train, y_train)
-    # X_test1, y_test1 = check_all_finite(X_test, y_test)
 
-    print("X_train shape: %s" % str(X_train.shape))
-    print("X_test shape: %s" % str(X_test.shape))
-    print('Shape of y_train: %s' % str(y_train.shape))
-    print('Shape of y_test: %s' % str(y_test.shape))
-    lin_reg = LinearRegression()
-    print("Fitting data")
-    print("Performance on test data:")
-    lin_reg.fit(X_train, y_train)
-    print(lin_reg.score(X_test, y_test))
+    # print("X_train shape: %s" % str(X_train.shape))
+    # print("X_test shape: %s" % str(X_test.shape))
+    # print('Shape of y_train: %s' % str(y_train.shape))
+    # print('Shape of y_test: %s' % str(y_test.shape))
+    # lin_reg = LinearRegression()
+    # print("Fitting data")
+    # print("Performance on test data:")
+    # lin_reg.fit(X_train, y_train)
+    # print(lin_reg.score(X_test, y_test))
     now = time.clock() - now
     print("Process took %s seconds." % (now / 1000))
