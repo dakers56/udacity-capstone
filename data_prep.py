@@ -261,15 +261,13 @@ def all_funds():
 
 
 def get_matching_funds(funds, quarter, year, not_processed):
+    print("Getting matching fundamentals.")
+    print("Funds:\n%s" % str(funds))
     if year is 'no_year_found':
         print("No year found")
         return None, None, None
     print('quarter: %s' % quarter)
-    print('type(quarter): %s' % type(quarter))
     print('year: %s' % year)
-    print('type(year): %s' % type(year))
-    funds1 = funds
-    print("Fundamentals df:\n" % funds)
     match = funds[(funds.period_focus == quarter) & (funds.fiscal_year == year)]
     print('match:\n%s' % str(match))
     if match.empty or match is None:
@@ -290,11 +288,11 @@ def get_matching_funds(funds, quarter, year, not_processed):
         _assert_all_finite(eps)
     except KeyError as e:
         print("Caught key error: %s" % str(e))
-        print("funds: \n%s" % funds)
+        print("match: \n%s" % match)
         not_processed.no_eps.append(funds)
         return None, None, None
     except ValueError:
-        not_processed.no_eps.append(funds)
+        not_processed.no_eps.append(match)
         print('eps value was not finite: %s' % eps)
         return None, None, None
     print('len(match): %s' % len(match))
@@ -304,17 +302,27 @@ def get_matching_funds(funds, quarter, year, not_processed):
     m = match['period_focus']
     print("shape of m: %s" % m.shape)
     print("m : %s" % m)
-    replaced = funds['period_focus'].iloc[0].replace('Q', '').replace('FY','')
-    print("after replacement: %s" % replaced)
+    replacement = funds['period_focus'].iloc[0].replace('Q', '').replace('FY','')
+    print("after replacement: %s" % replacement)
     try:
-        m.iloc[0] = int(replaced)
+        match.period_focus.replace(to_replace=re.compile(".*"), value=replacement, inplace=True)
     except ValueError as e:
         print("Caught value error while attempting to determine quarter: %s" % str(e))
         return None, None, None
     funds = funds.drop(match.index, axis=0)
     print("Returning matching fundamentals:\n%s" % str(match))
-    return match.drop('eps_basic', axis=1).drop('eps_diluted', axis=1).drop('period_focus',axis=1).drop('fiscal_year', axis=1), eps, diluted_eps
-
+    match = drop_label(match, 'eps_basic')
+    match = drop_label(match, 'eps_diluted')
+    match = drop_label(match, 'period_focus')
+    match = drop_label(match, 'fiscal_year')
+    #return match.drop('eps_basic', axis=1).drop('eps_diluted', axis=1).drop('period_focus',axis=1).drop('fiscal_year', axis=1), eps, diluted_eps)
+    return match, eps, diluted_eps
+def drop_label(df, label):
+    print("Dropping column '%s' from dataframe:\n%s" % (label, str(df)))
+    print("Shape before drop operation: %s" % str(df.shape))
+    df = df.drop(label, axis=1)
+    print("Shape after drop operation: %s" % str(df.shape))
+    return df
 
 def swap_str(string, ch1, ch2):
     ch1_index = string.index(ch1)
@@ -398,8 +406,12 @@ def get_date(file):
 
 
 def feature_vector(cnt_vec, transcript_file, funds, quarter, year, not_processed):
+    print("-------------")
+    print("Creating feature vector") 
     funds_vec, eps, diluted_eps = get_matching_funds(funds, quarter, year, not_processed)
+    print("funds_vec: %s" % str(funds_vec))
     transcript_vec = vectorize_transcript(cnt_vec, transcript_file)  
+    print("-------------")
     return cat_vectors(transcript_vec, funds_vec), eps, diluted_eps
 
 def bad_rows(X, is_X=True):
@@ -470,8 +482,8 @@ def validate_data(tr_ex, tr_lbl, i):
     clf = LinearRegression()
     try:
         clf.fit(tr_ex, tr_lbl.reshape(-1,1))
-    except ValueError:
-        print("Encountered ValueError while training data")
+    except ValueError as e:
+        print("Encountered ValueError while training data: %s" % str(e))
         print("Training example: %s" % tr_ex)
         print("Training label: %s" % tr_lbl)
         write_to_error('bad_data.out', tr_ex, tr_lbl, i)
