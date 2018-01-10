@@ -102,7 +102,6 @@ def transform(cnt_vec, string):
 
 
 def vectorize_transcript(cnt_vec, file):
-    return None
     file = open(file, 'r')
     X = transform(cnt_vec, file.readlines())
     file.close()
@@ -153,8 +152,10 @@ def cat_vectors(transcript, funds):
     if funds.empty:
         return None
     #return assert_finite(np.concatenate((transcript, np.array(funds)[0])))
-    #return np.concatenate((transcript, np.array(funds)[0]))
-    return np.array(funds)[0]
+    print("transcript shape: %s" % str(transcript.shape))
+    print("funds shape: %s" % str(np.array(funds)[0]))
+    return np.concatenate((transcript, np.array(funds)[0]))
+    #return np.array(funds)[0]
 
 def is_finite(v):
     v1 = np.array([v])
