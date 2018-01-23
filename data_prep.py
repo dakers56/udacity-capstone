@@ -19,6 +19,22 @@ def alphanumerical(text):
     return re.sub(pattern=r'[\\]x[0-9a-eA-Z]{1,2}', repl="",
                   string=re.sub(pattern="[^a-zA-Z0-9\s]", repl="", string=text)).replace("\n", "")
 
+def stem(stemmer, word):
+    try:
+        return stemmer.stem(word)
+    except Exception as e:
+        print("Caught error stemming word '%s'. Skipping.")
+        return None
+
+
+def stemmed_vocab(stemmer, words):
+    vocab = []
+    for w in words:
+        stemmed_word = stem(stemmer, w)
+        if stemmed_word and stemmed_word not in set(stopwords.words('english')):
+            vocab.append(stemmed_word)
+    return vocab
+
 
 def stem_file(file):
     print("Stemming file: %s" % file)
@@ -27,8 +43,8 @@ def stem_file(file):
     for line in lines:
         for word in line.split(" "):
             words.append(word)
-    return [PorterStemmer().stem(word) for word in words if word not in set(stopwords.words('english'))]
-
+            stemmer = PorterStemmer()
+    return stemmed_vocab(stemmer, words)
 
 def unpack_elements(nested_list):
     unpacked = []
