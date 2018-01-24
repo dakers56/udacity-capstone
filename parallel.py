@@ -4,7 +4,7 @@ from nltk.stem import PorterStemmer
 from multiprocessing import Pool
 
 files = None
-num_cores = 64
+num_cores = 61
 # ps = [PorterStemmer() for i in range(num_cores)]
 
 
@@ -21,16 +21,17 @@ def partition(data):
     print('l: %s' % l)
     n_parts = int(l / num_cores)
     print('n_parts: %s' % n_parts)
-    size_part = int(l / n_parts)
+    size_part = num_cores
     print('size_part: %s' % size_part)
     parts = [data[i * size_part: (i + 1) * size_part] for i in range(n_parts)]
-    parts.append(data[n_parts * size_part:])
+    if l % size_part > 0:
+        parts.append(data[n_parts * size_part:])
     return parts
 
 
 def parallelize(func, iter):
     pool = Pool()
-    return pool.map(func, iter)
+    return pool.map(func, partition(iter))
 
 
 if __name__ == '__main__':
