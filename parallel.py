@@ -196,7 +196,6 @@ if __name__ == '__main__':
             print("Creating process %s" % i)
             p = Process(target=process, args=(file_and_symbol, output, cnt_vec[i], not_processed, print_lock, i))
             p.start()
-            p.join()
 
 
 
