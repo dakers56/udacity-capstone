@@ -138,6 +138,7 @@ def read_all_transcript_files(base_dir='data_backup/seeking_alpha'):
     return all_transcripts
 
 def make_corpus_q(files_q, stemmed_q, print_lock):
+    sleep(.5)
     __print("Selecting files for corpus", print_lock)
     stemmer = PorterStemmer()
     stemmed_files = []
@@ -181,7 +182,6 @@ if __name__ == '__main__':
             p = Process(target=make_corpus_q, args=(file_only, stemmed_q, print_lock))
             p.start()
             print("Started process %s for stemming" % i)
-            p.join()
         corpus = corpus_q_as_set(stemmed_q) 
         cnt_vec = data_prep.get_vectorizer(corpus)
         data_prep.write_vectorizer(cnt_vec)
