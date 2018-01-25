@@ -36,14 +36,13 @@ def stemmed_vocab(stemmer, words):
     return vocab
 
 
-def stem_file(file):
+def stem_file(stemmer, file):
     print("Stemming file: %s" % file)
     lines = [alphanumerical(line) for line in file.readlines()]
     words = []
     for line in lines:
         for word in line.split(" "):
             words.append(word)
-            stemmer = PorterStemmer()
     return stemmed_vocab(stemmer, words)
 
 def unpack_elements(nested_list):
@@ -212,39 +211,48 @@ class UnprocessedFileList:
     def len(self):
         return len(self.no_q) + len(self.no_y) + len(self.no_funds) + len(self.no_date_found)
 
-def process_symbol(symbol, base_dir, file):
-    file = "%s/%s/%s" % (base_dir, symbol, file)
-    print("File: %s" % file)
-    quarter, year = get_date(file)
-    if quarter is None:
-        not_processed.no_q.append(file)
-        continue
-    if quarter is "no_date_found":
-        print("No date found for file '%s'" % file)
-        not_processed.no_diluted_eps.append(file)
-        continue
-    fv, eps, diluted_eps  = feature_vector(cnt_vec, file, funds, quarter, year, not_processed)
-    return fv, eps, diluted_eps
+# def process_symbol(symbol, base_dir, file, not_processed, cnt_vec):
+#     file = "%s/%s/%s" % (base_dir, symbol, file)
+#     print("File: %s" % file)
+#     quarter, year = get_date(file)
+#     if quarter is None:
+#         not_processed.no_q.append(file)
+#         return
+#     if quarter is "no_date_found":
+#         print("No date found for file '%s'" % file)
+#         not_processed.no_diluted_eps.append(file)
+#         return
+#     fv, eps, diluted_eps  = feature_vector(cnt_vec, file, funds, quarter, year, not_processed)
+#     return fv, eps, diluted_eps
 
-def are_valid(fv, eps, diluted_eps, file):
-    if fv is None:
-        not_processed.no_date_found.append(file)
-        return False
-    if eps is None:
-        not_processed.no_eps.append(eps)
-        return False
-    if diluted_eps is None:
-        not_processed.diluted_eps.append(diluted_eps)
-        return False
-    if not are_all_finite(np.array([fv])) or not are_all_finite(np.array([eps])) or not are_all_finite(np.array([diluted_eps])):
-        return False
-    return True
+# def are_valid(fv, eps, diluted_eps, file, not_processed):
+#     if fv is None:
+#         not_processed.no_date_found.append(file)
+#         return False
+#     if eps is None:
+#         not_processed.no_eps.append(eps)
+#         return False
+#     if diluted_eps is None:
+#         not_processed.diluted_eps.append(diluted_eps)
+#         return False
+#     if not are_all_finite(np.array([fv])) or not are_all_finite(np.array([eps])) or not are_all_finite(np.array([diluted_eps])):
+#         return False
+#     return True
 
 def append_X_train(X_train, fv):
-    return np.append(X_train_, np.array([fv]), axis=0)
+    return np.append(X_train, np.array([fv]), axis=0)
 
 def append_eps(all_eps, new_eps):
-    return np.append(all_eps_, np.array([eps]), axis=0)
+    return np.append(all_eps, np.array([new_eps]), axis=0)
+
+def read_all_files_for_symbol(symbol, base_dir='data_backup/seeking_alpha'):
+    file_and_symbol = []
+    transcript_path = "%s/%s" % (base_dir, symbol)
+    for file in os.listdir(transcript_path):
+        file = "%s/%s/%s" % (base_dir, symbol, file)
+        file_and_symbol.append((symbol, file))
+    return file_and_symbol
+
 
 def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
     X_train_ = None
@@ -259,18 +267,10 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
             print("Fund was None")
             continue
         if funds_exist(symbol):
-            files = ["%s/%s/%s" % (base_dir, symbol, file) for file in os.listdir(transcript_path):
             for file in os.listdir(transcript_path):
                 file = "%s/%s/%s" % (base_dir, symbol, file)
                 print("File: %s" % file)
-                quarter, year = get_date(file)
-                if quarter is None:
-                    not_processed.no_q.append(file)
-                    continue
-                if quarter is "no_date_found":
-                    print("No date found for file '%s'" % file)
-                    not_processed.no_diluted_eps.append(file)
-                    continue
+
                 fv, eps, diluted_eps  = feature_vector(cnt_vec, file, funds, quarter, year, not_processed)
                 if fv is None:
                     not_processed.no_date_found.append(file)
@@ -331,7 +331,7 @@ def get_matching_funds(funds, quarter, year, not_processed):
         return None, None, None
     if not are_all_finite(match):
         out = open('bad_tr_ex.out', 'a')
-        out.write(df_str(w) + "\n")
+        out.write(df_str(match) + "\n")
         out.close()
         return None, None, None
     match = clean_quarters(match)
@@ -560,7 +560,7 @@ if __name__ == '__main__':
     all_eps_path = 'all_eps.pkl'
     all_diluted_eps_path = 'all_diluted_eps.pkl'
     not_processed_path = 'not_processed.pkl'
- 
+
     all_input, all_eps, all_diluted_eps, not_processed = None, None, None, None
 
     if not os.path.exists(all_input_path) or not os.path.exists(all_eps_path) or not os.path.exists(all_diluted_eps_path) or not os.path.exists(not_processed_path):
@@ -574,7 +574,7 @@ if __name__ == '__main__':
         all_eps = joblib.load(all_eps_path)
         all_diluted_eps = joblib.load(all_diluted_eps_path)
         not_processed = joblib.load(not_processed_path)
-      
+
     #to_drop = []
     #for i in range(all_input.shape[0]):
     #    if not validate_data(all_input[i], all_eps[i], i):
@@ -583,7 +583,7 @@ if __name__ == '__main__':
     #    print("Dropping indices: %s" % ','.join(str(v) for v in to_drop))
     #    all_input.delete(to_drop, axis=0)
     #    all_eps.delete(to_drop, axis=0)
-    
+
 
     print("Number of processed vectors: %s" % all_input.size)
     print("Number of unprocessed vectors: %s" % str(not_processed.len()))
@@ -624,4 +624,5 @@ if __name__ == '__main__':
     # print("X_test shape: %s" % str(X_test.shape))
     # print('Shape of y_train: %s' % str(y_train.shape))
     # print('Shape of y_test: %s' % str(y_test.shape))
+
 
