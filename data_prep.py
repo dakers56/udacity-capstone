@@ -212,6 +212,39 @@ class UnprocessedFileList:
     def len(self):
         return len(self.no_q) + len(self.no_y) + len(self.no_funds) + len(self.no_date_found)
 
+def process_symbol(symbol, base_dir, file):
+    file = "%s/%s/%s" % (base_dir, symbol, file)
+    print("File: %s" % file)
+    quarter, year = get_date(file)
+    if quarter is None:
+        not_processed.no_q.append(file)
+        continue
+    if quarter is "no_date_found":
+        print("No date found for file '%s'" % file)
+        not_processed.no_diluted_eps.append(file)
+        continue
+    fv, eps, diluted_eps  = feature_vector(cnt_vec, file, funds, quarter, year, not_processed)
+    return fv, eps, diluted_eps
+
+def are_valid(fv, eps, diluted_eps, file):
+    if fv is None:
+        not_processed.no_date_found.append(file)
+        return False
+    if eps is None:
+        not_processed.no_eps.append(eps)
+        return False
+    if diluted_eps is None:
+        not_processed.diluted_eps.append(diluted_eps)
+        return False
+    if not are_all_finite(np.array([fv])) or not are_all_finite(np.array([eps])) or not are_all_finite(np.array([diluted_eps])):
+        return False
+    return True
+
+def append_X_train(X_train, fv):
+    return np.append(X_train_, np.array([fv]), axis=0)
+
+def append_eps(all_eps, new_eps):
+    return np.append(all_eps_, np.array([eps]), axis=0)
 
 def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
     X_train_ = None
@@ -226,6 +259,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
             print("Fund was None")
             continue
         if funds_exist(symbol):
+            files = ["%s/%s/%s" % (base_dir, symbol, file) for file in os.listdir(transcript_path):
             for file in os.listdir(transcript_path):
                 file = "%s/%s/%s" % (base_dir, symbol, file)
                 print("File: %s" % file)

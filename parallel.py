@@ -4,7 +4,7 @@ from nltk.stem import PorterStemmer
 from multiprocessing import Pool
 
 files = None
-num_cores = 61
+num_cores = 64
 # ps = [PorterStemmer() for i in range(num_cores)]
 
 
