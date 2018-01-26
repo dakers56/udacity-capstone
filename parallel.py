@@ -170,7 +170,10 @@ def make_corpus_q(files_q, stemmed_q, print_lock):
 def corpus_q_as_set(corpus_q):
     as_set = set()
     while not corpus_q.empty():
-        as_set.add(q.get())
+        q = corpus_q.get()
+        print("Adding %s to corpus" % q)
+        as_set.add(q)
+    print("Done converting corpus queue to set")
     return as_set
 
 if __name__ == '__main__':
