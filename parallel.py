@@ -1,4 +1,5 @@
 # Trying to parallelize stemming
+import datetime
 import os
 import copy
 import sys
@@ -65,7 +66,7 @@ class Output:
 def __print(statement, lock):
     lock.acquire()
     try:
-        print(statement)
+        print("%s - %s" % (datetime.datetime.now() ,statement))
     finally:
         lock.release()
 
