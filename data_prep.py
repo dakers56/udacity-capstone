@@ -18,7 +18,6 @@ import numpy as np
 FORMAT = '%(asctime)-15s %(message)s'
 logging.basicConfig(format=FORMAT)
 logger = logging.getLogger(__name__)
-logger.warning('Protocol problem: %s', 'connection reset', extra=d)
 
 def alphanumerical(text):
     return re.sub(pattern=r'[\\]x[0-9a-eA-Z]{1,2}', repl="",
@@ -147,6 +146,7 @@ def vectorize_funds(file, clean_data=False):
         logger.info("Path to fundamentals '%s' did not exist." % file)
         return None
     funds = pd.read_csv(file).drop('symbol', axis=1).drop('end_date', axis=1).drop('amend', axis=1).drop('doc_type',
+                                                                                                         axis=1)
     return funds
 
 def df_str(df):

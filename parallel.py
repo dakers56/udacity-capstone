@@ -71,8 +71,6 @@ def __print(statement, lock):
         lock.release()
 
 
-# create a supervisor process for each processor. will obtain next file from queue, then begin processing. upon completion
-# will append results to a queue.
 def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, proc_num, base_dir='data_backup/seeking_alpha'):
     print("processing data")
     print("--------------")
@@ -82,9 +80,9 @@ def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, p
     while not file_and_symbol.empty():
         __print("Process number %s running." % proc_num, print_lock)
         file, symbol = file_and_symbol.get()
-        __print("Next file is %s" % str(file), print_lock)
-        __print("Next symbol is %s" % str(symbol), print_lock)
-        __print("Items remaining in queue: %s" % str(symbol), print_lock)
+        __print("Next file to process is %s" % str(file), print_lock)
+        __print("Next symbol to process is %s" % str(symbol), print_lock)
+        __print("Items remaining in queue to process: %s" % str(symbol), print_lock)
 
         funds = data_prep.vectorize_funds('fundamentals/%s' % symbol)
         if funds is None:
@@ -131,6 +129,22 @@ def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, p
         not_processed_queue.put(not_processed)
         output.put(Output(X_train=X_train, all_eps=all_eps, all_diluted_eps=all_diluted_eps))
 
+def write_output(output):
+    joblib.dump(output.X_train, "X_train.pkl")
+    joblib.dump(output.all_eps, "all_eps.pkl")
+    joblib.dump(output.all_diluted_eps, "all_diluted_eps.pkl")
+
+def cat_output(output_q):
+    output = output_q.get()
+    X_train = output.X_train
+    all_eps = output.all_eps
+    all_diluted_eps = output.all_diluted_eps
+    while not output_q.empty():
+        output = output_q.get()
+        X_train = np.append(X_train, output.X_train)
+        all_eps = np.append(all_eps, output.all_eps)
+        all_diluted_eps = np.append(all_diluted_eps, output.all_diluted_eps)
+    return Output(X_train=X_train, all_eps=all_eps, all_diluted_eps=all_diluted_eps)
 
 def read_all_transcript_files(base_dir='data_backup/seeking_alpha'):
     all_transcripts = []
@@ -144,10 +158,10 @@ def make_corpus_q(files_q, stemmed_q, print_lock):
     stemmer = PorterStemmer()
     stemmed_files = []
     while not files_q.empty():
-        __print("Files remaining in queue:  %s" % str(files_q.qsize()), print_lock)
+        __print("Files remaining in queue for corpus:  %s" % str(files_q.qsize()), print_lock)
         file = files_q.get()
         file = open(file, 'r')
-        __print("Next file is %s" % str(file), print_lock)
+        __print("Next file for corpus is %s" % str(file), print_lock)
         for word in data_prep.stem_file(stemmer, file):
             stemmed_q.put(word)
         file.close()
@@ -181,10 +195,18 @@ if __name__ == '__main__':
 
     if train_new:
         stemmed_q = Queue()
+        stem_proc = []
         for i in range(num_cores):
             p = Process(target=make_corpus_q, args=(file_only, stemmed_q, print_lock))
+            stem_proc.append(p)
             p.start()
             print("Started process %s for stemming" % i)
+        while not file_only.empty():
+            print("Still have %s files to process." % file_only.qsize())
+            sleep(.5)
+        for p in stem_proc:
+            print("Performing final join of process")
+            p.join()
         print("Done making corpus queue")
         corpus = corpus_q_as_set(stemmed_q) 
         print("Creating count vectorizer")
@@ -200,11 +222,23 @@ if __name__ == '__main__':
     if train_new:
         print("Creating new model.")
         cnt_vec = [copy.copy(cnt_vec) for i in range(num_cores)]
+        cnt_vec_proc = []
         for i in range(num_cores):
             print("------")
             print("Creating process %s" % i)
             p = Process(target=process, args=(file_and_symbol, output, cnt_vec[i], not_processed, print_lock, i))
+            cnt_vec_proc.append(p)
             p.start()
 
+        while not file_and_symbol.empty():
+            print("Still have %s files to process." % file_and_symbol.qsize())
+            sleep(.5)
+        print("Done creating model.")
+        
+        for p in cnt_vec_proc:
+            print("Terminating process for cnt_vec")
+            p.join()
 
-
+        print("Writing output to file.")
+        write_output(cat_output(output))
+        print("Done writing output to file.")
