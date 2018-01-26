@@ -6,12 +6,12 @@ import sys
 import joblib
 from nltk.stem import PorterStemmer
 import numpy as np
-from multiprocessing import Pool, Process, Queue, Lock, cpu_count
+import multiprocessing as mp
 from time import sleep
 import data_prep
 
 file_and_symbol = None
-num_cores = cpu_count()
+num_cores = mp.cpu_count()
 
 
 # ps = [PorterStemmer() for i in range(num_cores)]
@@ -39,7 +39,7 @@ def partition(data):
 
 
 def parallelize(func, iter):
-    pool = Pool()
+    pool = mp.Pool()
     return pool.map(func, partition(iter))
 
 
@@ -78,7 +78,7 @@ def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, p
     not_processed = data_prep.UnprocessedFileList()
 
     while not file_and_symbol.empty():
-        __print("Process number %s running." % proc_num, print_lock)
+        __print("mp.Process number %s running." % proc_num, print_lock)
         file, symbol = file_and_symbol.get()
         __print("Next file to process is %s" % str(file), print_lock)
         __print("Next symbol to process is %s" % str(symbol), print_lock)
@@ -183,24 +183,24 @@ if __name__ == '__main__':
     transcript_tuples  = read_all_transcript_files()
     all_symbols = [x[0] for x in transcript_tuples]
     all_transcript_files = [x[1] for x in transcript_tuples]
-    file_and_symbol = Queue()
+    file_and_symbol = mp.Queue()
     put_all(file_and_symbol,(all_symbols, all_transcript_files))
     
-    file_only = Queue()
+    file_only = mp.Queue()
     file_only = put_all(file_only, all_transcript_files) 
     
-    output = Queue()
-    not_processed = Queue()
-    print_lock = Lock()
+    output = mp.Queue()
+    not_processed = mp.Queue()
+    print_lock = mp.Lock()
 
     cnt_vec = None
     vocab_path = 'vocab.pkl'
 
     if train_new:
-        stemmed_q = Queue()
+        stemmed_q = mp.Queue()
         stem_proc = []
         for i in range(num_cores):
-            p = Process(target=make_corpus_q, args=(file_only, stemmed_q, print_lock))
+            p = mp.Process(target=make_corpus_q, args=(file_only, stemmed_q, print_lock))
             stem_proc.append(p)
             p.start()
             print("Started process %s for stemming" % i)
@@ -229,7 +229,7 @@ if __name__ == '__main__':
         for i in range(num_cores):
             print("------")
             print("Creating process %s" % i)
-            p = Process(target=process, args=(file_and_symbol, output, cnt_vec[i], not_processed, print_lock, i))
+            p = mp.Process(target=process, args=(file_and_symbol, output, cnt_vec[i], not_processed, print_lock, i))
             cnt_vec_proc.append(p)
             p.start()
 
