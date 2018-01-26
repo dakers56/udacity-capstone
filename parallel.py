@@ -144,12 +144,14 @@ def make_corpus_q(files_q, stemmed_q, print_lock):
     stemmer = PorterStemmer()
     stemmed_files = []
     while not files_q.empty():
+        __print("Files remaining in queue:  %s" % str(files_q.qsize()), print_lock)
         file = files_q.get()
         file = open(file, 'r')
         __print("Next file is %s" % str(file), print_lock)
         for word in data_prep.stem_file(stemmer, file):
             stemmed_q.put(word)
         file.close()
+        __print("Closed file '%s'" % str(file), print_lock)
 
 def corpus_q_as_set(corpus_q):
     as_set = set()
@@ -183,10 +185,16 @@ if __name__ == '__main__':
             p = Process(target=make_corpus_q, args=(file_only, stemmed_q, print_lock))
             p.start()
             print("Started process %s for stemming" % i)
+        print("Done making corpus queue")
         corpus = corpus_q_as_set(stemmed_q) 
+        print("Creating count vectorizer")
         cnt_vec = data_prep.get_vectorizer(corpus)
+        print("Done creating count vectorizer")
+        print("Writing count vectorizer to disk")
         data_prep.write_vectorizer(cnt_vec)
+        print("Done writing vectorizer to disk")
     else:
+        print("Reading vocab from disk")
         cnt_vec = joblib.load(vocab_path)
    
     if train_new:
