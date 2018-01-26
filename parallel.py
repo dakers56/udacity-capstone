@@ -6,12 +6,12 @@ import sys
 import joblib
 from nltk.stem import PorterStemmer
 import numpy as np
-from multiprocessing import Pool, Process, Queue, Lock
+from multiprocessing import Pool, Process, Queue, Lock, cpu_count
 from time import sleep
 import data_prep
 
 file_and_symbol = None
-num_cores = 64
+num_cores = cpu_count()
 
 
 # ps = [PorterStemmer() for i in range(num_cores)]
