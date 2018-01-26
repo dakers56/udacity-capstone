@@ -171,7 +171,7 @@ def corpus_q_as_set(corpus_q):
     as_set = set()
     while not corpus_q.empty():
         q = corpus_q.get()
-        print("Adding %s to corpus" % q)
+        print("Adding %s to corpus" % str(q))
         as_set.add(q)
     print("Done converting corpus queue to set")
     return as_set
