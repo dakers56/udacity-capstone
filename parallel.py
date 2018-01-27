@@ -48,6 +48,7 @@ def put_all(q, iter):
         q.put(obj)
     return q
 
+
 def get_all(q):
     all = []
     while not q.empty():
@@ -66,12 +67,13 @@ class Output:
 def __print(statement, lock):
     lock.acquire()
     try:
-        print("%s - %s" % (datetime.datetime.now() ,statement))
+        print("%s - %s" % (datetime.datetime.now(), statement))
     finally:
         lock.release()
 
 
-def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, proc_num, base_dir='data_backup/seeking_alpha'):
+def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, proc_num,
+            base_dir='data_backup/seeking_alpha'):
     print("processing data")
     print("--------------")
     X_train, all_eps, all_diluted_eps = None, None, None
@@ -130,10 +132,12 @@ def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, p
         # output.put(Output(X_train=X_train, all_eps=all_eps, all_diluted_eps=all_diluted_eps))
         return Output(X_train=X_train, all_eps=all_eps, all_diluted_eps=all_diluted_eps)
 
+
 def write_output(output):
     joblib.dump(output.X_train, "X_train.pkl")
     joblib.dump(output.all_eps, "all_eps.pkl")
     joblib.dump(output.all_diluted_eps, "all_diluted_eps.pkl")
+
 
 def cat_output(output_q):
     output = output_q.get()
@@ -147,11 +151,13 @@ def cat_output(output_q):
         all_diluted_eps = np.append(all_diluted_eps, output.all_diluted_eps)
     return Output(X_train=X_train, all_eps=all_eps, all_diluted_eps=all_diluted_eps)
 
+
 def read_all_transcript_files(base_dir='data_backup/seeking_alpha'):
     all_transcripts = []
     for symbol in os.listdir(base_dir):
         all_transcripts += data_prep.read_all_files_for_symbol(symbol, base_dir)
     return all_transcripts
+
 
 def make_corpus_q(files_q, print_lock):
     sleep(.5)
@@ -169,6 +175,7 @@ def make_corpus_q(files_q, print_lock):
         __print("Closed file '%s'" % str(file), print_lock)
     return stemmed_output
 
+
 def corpus_q_as_set(corpus_q):
     as_set = set()
     while not corpus_q.empty():
@@ -178,25 +185,27 @@ def corpus_q_as_set(corpus_q):
     print("Done converting corpus queue to set")
     return as_set
 
+
 def corpus_list_to_set(res):
     final = set(res[0].get(timeout=1))
     for r in res:
         final.add(r.get(timeout=1))
     return final
 
+
 if __name__ == '__main__':
     print("inside main")
     train_new = sys.argv[1] == "true"
-    
-    transcript_tuples  = read_all_transcript_files()
+
+    transcript_tuples = read_all_transcript_files()
     all_symbols = [x[0] for x in transcript_tuples]
     all_transcript_files = [x[1] for x in transcript_tuples]
     file_and_symbol = mp.Queue()
-    put_all(file_and_symbol,(all_symbols, all_transcript_files))
-    
+    put_all(file_and_symbol, (all_symbols, all_transcript_files))
+
     file_only = mp.Queue()
-    file_only = put_all(file_only, all_transcript_files) 
-    
+    file_only = put_all(file_only, all_transcript_files)
+
     # output = mp.Queue()
     not_processed = mp.Queue()
     print_lock = mp.Lock()
@@ -211,10 +220,13 @@ if __name__ == '__main__':
         with mp.Pool(processes=num_cores) as pool:
             res = [pool.apply_async(func=make_corpus_q, args=(file_only, print_lock))]
             corpus = corpus_list_to_set(res)
+            print("Done with pool (inside block)")
 
+        print("Done with pool (outside block)")
         while not file_only.empty():
             print("Still have %s files to process." % file_only.qsize())
             sleep(.5)
+
         print("Done making corpus queue")
         # corpus = corpus_q_as_set(stemmed_q)
         print("Creating count vectorizer")
@@ -226,7 +238,7 @@ if __name__ == '__main__':
     else:
         print("Reading vocab from disk")
         cnt_vec = joblib.load(vocab_path)
-   
+
     if train_new:
         output = None
         print("Creating new model.")
@@ -236,7 +248,11 @@ if __name__ == '__main__':
         with mp.Pool(processes=num_cores) as pool:
             res = []
             for i in range(num_cores):
-                res.append(pool.apply_async(func=process, args=(file_and_symbol, output, cnt_vec[i], not_processed, print_lock, i)))
+                res.append(pool.apply_async(func=process,
+                                            args=(file_and_symbol, output, cnt_vec[i], not_processed, print_lock, i)))
+                print("Done with pool (inside block)")
+
+        print("Done with pool (outside block)")
 
         # for i in range(num_cores):
         #     print("------")
@@ -249,7 +265,7 @@ if __name__ == '__main__':
             print("Still have %s files to process." % file_and_symbol.qsize())
             sleep(.5)
         print("Done creating model.")
-        
+
         for p in cnt_vec_proc:
             print("Terminating process for cnt_vec")
             p.join()
