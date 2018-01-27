@@ -127,7 +127,8 @@ def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, p
 
         __print("putting %s into output queue" % str((file, symbol)), print_lock)
         not_processed_queue.put(not_processed)
-        output.put(Output(X_train=X_train, all_eps=all_eps, all_diluted_eps=all_diluted_eps))
+        # output.put(Output(X_train=X_train, all_eps=all_eps, all_diluted_eps=all_diluted_eps))
+        return Output(X_train=X_train, all_eps=all_eps, all_diluted_eps=all_diluted_eps)
 
 def write_output(output):
     joblib.dump(output.X_train, "X_train.pkl")
@@ -152,20 +153,21 @@ def read_all_transcript_files(base_dir='data_backup/seeking_alpha'):
         all_transcripts += data_prep.read_all_files_for_symbol(symbol, base_dir)
     return all_transcripts
 
-def make_corpus_q(files_q, stemmed_q, print_lock):
+def make_corpus_q(files_q, print_lock):
     sleep(.5)
+    stemmed_output = []
     __print("Selecting files for corpus", print_lock)
     stemmer = PorterStemmer()
-    stemmed_files = []
     while not files_q.empty():
         __print("Files remaining in queue for corpus:  %s" % str(files_q.qsize()), print_lock)
         file = files_q.get()
         file = open(file, 'r')
         __print("Next file for corpus is %s" % str(file), print_lock)
         for word in data_prep.stem_file(stemmer, file):
-            stemmed_q.put(word)
+            stemmed_output.append(word)
         file.close()
         __print("Closed file '%s'" % str(file), print_lock)
+    return stemmed_output
 
 def corpus_q_as_set(corpus_q):
     as_set = set()
@@ -175,6 +177,12 @@ def corpus_q_as_set(corpus_q):
         as_set.add(q)
     print("Done converting corpus queue to set")
     return as_set
+
+def corpus_list_to_set(res):
+    final = set(res[0].get(timeout=1))
+    for r in res:
+        final.add(r.get(timeout=1))
+    return final
 
 if __name__ == '__main__':
     print("inside main")
@@ -189,7 +197,7 @@ if __name__ == '__main__':
     file_only = mp.Queue()
     file_only = put_all(file_only, all_transcript_files) 
     
-    output = mp.Queue()
+    # output = mp.Queue()
     not_processed = mp.Queue()
     print_lock = mp.Lock()
 
@@ -199,19 +207,16 @@ if __name__ == '__main__':
     if train_new:
         stemmed_q = mp.Queue()
         stem_proc = []
-        for i in range(num_cores):
-            p = mp.Process(target=make_corpus_q, args=(file_only, stemmed_q, print_lock))
-            stem_proc.append(p)
-            p.start()
-            print("Started process %s for stemming" % i)
+        corpus = None
+        with mp.Pool(processes=num_cores) as pool:
+            res = [pool.apply_async(func=make_corpus_q, args=(file_only, print_lock))]
+            corpus = corpus_list_to_set(res)
+
         while not file_only.empty():
             print("Still have %s files to process." % file_only.qsize())
             sleep(.5)
-        for p in stem_proc:
-            print("Performing final join of process")
-            p.join()
         print("Done making corpus queue")
-        corpus = corpus_q_as_set(stemmed_q) 
+        # corpus = corpus_q_as_set(stemmed_q)
         print("Creating count vectorizer")
         cnt_vec = data_prep.get_vectorizer(corpus)
         print("Done creating count vectorizer")
@@ -223,15 +228,22 @@ if __name__ == '__main__':
         cnt_vec = joblib.load(vocab_path)
    
     if train_new:
+        output = None
         print("Creating new model.")
         cnt_vec = [copy.copy(cnt_vec) for i in range(num_cores)]
         cnt_vec_proc = []
-        for i in range(num_cores):
-            print("------")
-            print("Creating process %s" % i)
-            p = mp.Process(target=process, args=(file_and_symbol, output, cnt_vec[i], not_processed, print_lock, i))
-            cnt_vec_proc.append(p)
-            p.start()
+        i = 0
+        with mp.Pool(processes=num_cores) as pool:
+            res = []
+            for i in range(num_cores):
+                res.append(pool.apply_async(func=process, args=(file_and_symbol, output, cnt_vec[i], not_processed, print_lock, i)))
+
+        # for i in range(num_cores):
+        #     print("------")
+        #     print("Creating process %s" % i)
+        #     p = mp.Process(target=process, args=(file_and_symbol, output, cnt_vec[i], not_processed, print_lock, i))
+        #     cnt_vec_proc.append(p)
+        #     p.start()
 
         while not file_and_symbol.empty():
             print("Still have %s files to process." % file_and_symbol.qsize())
