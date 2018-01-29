@@ -48,6 +48,7 @@ def put_all(q, iter):
         q.put(obj)
     return q
 
+
 def get_all(q):
     all = []
     while not q.empty():
@@ -66,12 +67,13 @@ class Output:
 def __print(statement, lock):
     lock.acquire()
     try:
-        print("%s - %s" % (datetime.datetime.now() ,statement))
+        print("%s - %s" % (datetime.datetime.now(), statement))
     finally:
         lock.release()
 
 
-def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, proc_num, base_dir='data_backup/seeking_alpha'):
+def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, proc_num,
+            base_dir='data_backup/seeking_alpha'):
     print("processing data")
     print("--------------")
     X_train, all_eps, all_diluted_eps = None, None, None
@@ -86,22 +88,28 @@ def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, p
 
         funds = data_prep.vectorize_funds('fundamentals/%s' % symbol)
         if funds is None:
+            file_and_symbol.task_done()
             continue
 
         quarter, year = data_prep.get_date(file)
         if quarter is None:
             not_processed.no_q.append(file)
+            file_and_symbol.task_done()
             continue
         if quarter is "no_date_found":
             __print("No date found for file '%s'" % file, print_lock)
             not_processed.no_diluted_eps.append(file)
+            file_and_symbol.task_done()
             continue
 
         fv, eps, diluted_eps = data_prep.feature_vector(cnt_vec, file, funds, quarter, year, not_processed)
 
         if fv is None:
             not_processed.no_date_found.append(file)
+            file_and_symbol.task_done()
             continue
+
+        file_and_symbol.task_done()
 
         if eps is None:
             not_processed.no_eps.append(eps)
@@ -129,10 +137,12 @@ def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, p
         not_processed_queue.put(not_processed)
         output.put(Output(X_train=X_train, all_eps=all_eps, all_diluted_eps=all_diluted_eps))
 
+
 def write_output(output):
     joblib.dump(output.X_train, "X_train.pkl")
     joblib.dump(output.all_eps, "all_eps.pkl")
     joblib.dump(output.all_diluted_eps, "all_diluted_eps.pkl")
+
 
 def cat_output(output_q):
     output = output_q.get()
@@ -146,26 +156,31 @@ def cat_output(output_q):
         all_diluted_eps = np.append(all_diluted_eps, output.all_diluted_eps)
     return Output(X_train=X_train, all_eps=all_eps, all_diluted_eps=all_diluted_eps)
 
+
 def read_all_transcript_files(base_dir='data_backup/seeking_alpha'):
     all_transcripts = []
     for symbol in os.listdir(base_dir):
         all_transcripts += data_prep.read_all_files_for_symbol(symbol, base_dir)
     return all_transcripts
 
+
 def make_corpus_q(files_q, stemmed_q, print_lock):
     sleep(.5)
     __print("Selecting files for corpus", print_lock)
     stemmer = PorterStemmer()
-    stemmed_files = []
     while not files_q.empty():
-        __print("Files remaining in queue for corpus:  %s" % str(files_q.qsize()), print_lock)
+        fn = str(file)
+        q_size = files_q.qsize()
+        __print("Files remaining in queue for corpus:  %s" % str(q_size), print_lock)
         file = files_q.get()
         file = open(file, 'r')
-        __print("Next file for corpus is %s" % str(file), print_lock)
+        __print("Next file for corpus is %s" % fn, print_lock)
         for word in data_prep.stem_file(stemmer, file):
             stemmed_q.put(word)
         file.close()
-        __print("Closed file '%s'" % str(file), print_lock)
+        files_q.task_done()
+        __print("Closed file '%s'" % fn, print_lock)
+
 
 def corpus_q_as_set(corpus_q):
     as_set = set()
@@ -173,22 +188,24 @@ def corpus_q_as_set(corpus_q):
         q = corpus_q.get()
         print("Adding %s to corpus" % str(q))
         as_set.add(q)
+        corpus_q.task_done()
     print("Done converting corpus queue to set")
     return as_set
+
 
 if __name__ == '__main__':
     print("inside main")
     train_new = sys.argv[1] == "true"
-    
-    transcript_tuples  = read_all_transcript_files()
+
+    transcript_tuples = read_all_transcript_files()
     all_symbols = [x[0] for x in transcript_tuples]
     all_transcript_files = [x[1] for x in transcript_tuples]
     file_and_symbol = mp.Queue()
-    put_all(file_and_symbol,(all_symbols, all_transcript_files))
-    
-    file_only = mp.Queue()
-    file_only = put_all(file_only, all_transcript_files) 
-    
+    put_all(file_and_symbol, (all_symbols, all_transcript_files))
+
+    file_only = mp.JoinableQueue()
+    file_only = put_all(file_only, all_transcript_files)
+
     output = mp.Queue()
     not_processed = mp.Queue()
     print_lock = mp.Lock()
@@ -197,21 +214,24 @@ if __name__ == '__main__':
     vocab_path = 'vocab.pkl'
 
     if train_new:
-        stemmed_q = mp.Queue()
+        stemmed_q = mp.JoinableQueue()
         stem_proc = []
         for i in range(num_cores):
             p = mp.Process(target=make_corpus_q, args=(file_only, stemmed_q, print_lock))
             stem_proc.append(p)
             p.start()
             print("Started process %s for stemming" % i)
-        while not file_only.empty():
-            print("Still have %s files to process." % file_only.qsize())
-            sleep(.5)
+        # while not file_only.empty():
+        #     print("Still have %s files to process." % file_only.qsize())
+        #     sleep(.5)
+        print("Waiting until all files are consumed to create corpus queue")
+        file_only.join()
         for p in stem_proc:
             print("Performing final join of process")
             p.join()
         print("Done making corpus queue")
-        corpus = corpus_q_as_set(stemmed_q) 
+        corpus = corpus_q_as_set(stemmed_q)
+        print("Done converting corpus queue to set")
         print("Creating count vectorizer")
         cnt_vec = data_prep.get_vectorizer(corpus)
         print("Done creating count vectorizer")
@@ -221,7 +241,7 @@ if __name__ == '__main__':
     else:
         print("Reading vocab from disk")
         cnt_vec = joblib.load(vocab_path)
-   
+
     if train_new:
         print("Creating new model.")
         cnt_vec = [copy.copy(cnt_vec) for i in range(num_cores)]
@@ -233,11 +253,13 @@ if __name__ == '__main__':
             cnt_vec_proc.append(p)
             p.start()
 
-        while not file_and_symbol.empty():
-            print("Still have %s files to process." % file_and_symbol.qsize())
-            sleep(.5)
+        # while not file_and_symbol.empty():
+        #     print("Still have %s files to process." % file_and_symbol.qsize())
+        #     sleep(.5)
+        print("Waiting to consume all of file_and_symbol queue")
+        file_and_symbol.join()
         print("Done creating model.")
-        
+
         for p in cnt_vec_proc:
             print("Terminating process for cnt_vec")
             p.join()
