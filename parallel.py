@@ -7,7 +7,7 @@ import joblib
 from nltk.stem import PorterStemmer
 import numpy as np
 import multiprocessing as mp
-import Queue
+import queue as Queue
 from time import sleep
 import data_prep
 
@@ -193,10 +193,14 @@ def make_corpus_q(files_q, stemmed_q, print_lock):
         file.close()
         files_q.task_done()
         __print("Closed file '%s'" % fn, print_lock)
+    __print("Outside of loop checking if queue is empty") 
 
 
-def corpus_q_as_set(corpus_q):
-    as_set = set()
+def corpus_q_as_set(corpus_q, partial_q=None):
+    if partial_q is None:
+        as_set = set()
+    else:
+        as_set = partial_q
     while not corpus_q.empty():
         q = corpus_q.get()
         print("Adding %s to corpus" % str(q))
@@ -213,14 +217,10 @@ if __name__ == '__main__':
     transcript_tuples = read_all_transcript_files()
     all_symbols = [x[0] for x in transcript_tuples]
     all_transcript_files = [x[1] for x in transcript_tuples]
-    file_and_symbol = mp.Queue()
-    put_all(file_and_symbol, (all_symbols, all_transcript_files))
 
     file_only = mp.JoinableQueue()
     file_only = put_all(file_only, all_transcript_files)
 
-    output = mp.Queue()
-    not_processed = mp.Queue()
     print_lock = mp.Lock()
 
     cnt_vec = None
@@ -228,6 +228,7 @@ if __name__ == '__main__':
 
     if train_new:
         stemmed_q = mp.Queue()
+        corpus = None
         stem_proc = []
         for i in range(num_cores):
             p = mp.Process(target=make_corpus_q, args=(file_only, stemmed_q, print_lock))
@@ -237,14 +238,16 @@ if __name__ == '__main__':
         print("Done starting processes")
         while not file_only.empty():
             print("Still have active children: %s" % len(mp.active_children()))
+            corpus=corpus_q_as_set(stemmed_q, corpus)
             sleep(.5)
-        print("Waiting until all files are consumed to create corpus queue")
+        #print("Waiting until all files are consumed to create corpus queue")
+        print("Done processing file queue")
         file_only.join()
         for p in stem_proc:
             print("Performing final join of process")
             p.join()
-        print("Done making corpus queue")
-        corpus = corpus_q_as_set(stemmed_q)
+        #print("Done making corpus queue")
+        #corpus = corpus_q_as_set(stemmed_q)
         print("Done converting corpus queue to set")
         print("Creating count vectorizer")
         cnt_vec = data_prep.get_vectorizer(corpus)
@@ -258,7 +261,11 @@ if __name__ == '__main__':
 
     if train_new:
         print("Creating new model.")
+        output = mp.Queue()
+        not_processed = mp.Queue()
         cnt_vec = [copy.copy(cnt_vec) for i in range(num_cores)]
+        file_only = mp.JoinableQueue()
+        put_all(file_and_symbol, (all_symbols, all_transcript_files))
         cnt_vec_proc = []
         for i in range(num_cores):
             print("------")
