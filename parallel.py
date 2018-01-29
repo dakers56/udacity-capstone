@@ -206,6 +206,8 @@ def corpus_q_as_set(corpus_q, partial_q=None):
         print("Adding %s to corpus" % str(q))
         as_set.add(q)
         corpus_q.task_done()
+        wait(.5)
+        
     print("Done converting corpus queue to set")
     return as_set
 
@@ -238,16 +240,16 @@ if __name__ == '__main__':
         print("Done starting processes")
         while not file_only.empty():
             print("Still have active children: %s" % len(mp.active_children()))
-            corpus=corpus_q_as_set(stemmed_q, corpus)
+            #corpus=corpus_q_as_set(stemmed_q, corpus)
             sleep(.5)
-        #print("Waiting until all files are consumed to create corpus queue")
+        print("Waiting until all files are consumed to create corpus queue")
         print("Done processing file queue")
         file_only.join()
         for p in stem_proc:
             print("Performing final join of process")
             p.join()
-        #print("Done making corpus queue")
-        #corpus = corpus_q_as_set(stemmed_q)
+        print("Done making corpus queue")
+        corpus = corpus_q_as_set(stemmed_q)
         print("Done converting corpus queue to set")
         print("Creating count vectorizer")
         cnt_vec = data_prep.get_vectorizer(corpus)
