@@ -7,6 +7,7 @@ import joblib
 from nltk.stem import PorterStemmer
 import numpy as np
 import multiprocessing as mp
+import Queue
 from time import sleep
 import data_prep
 
@@ -81,7 +82,13 @@ def process(file_and_symbol, output, cnt_vec, not_processed_queue, print_lock, p
 
     while not file_and_symbol.empty():
         __print("mp.Process number %s running." % proc_num, print_lock)
-        file, symbol = file_and_symbol.get()
+        timeout = .5
+        file, symbol = None, None
+        try:
+            file = file_and_symbol.get(timeout=timeout)
+        except Queue.Empty:
+            print("Could not retrieve element from queue within %s seconds" % timeout)
+            continue
         __print("Next file to process is %s" % str(file), print_lock)
         __print("Next symbol to process is %s" % str(symbol), print_lock)
         __print("Items remaining in queue to process: %s" % str(symbol), print_lock)
@@ -169,7 +176,13 @@ def make_corpus_q(files_q, stemmed_q, print_lock):
     __print("Selecting files for corpus", print_lock)
     stemmer = PorterStemmer()
     while not files_q.empty():
-        file = files_q.get()
+        file = None
+        timeout = .5
+        try:
+            file = files_q.get(timeout=timeout)
+        except Queue.Empty:
+            print("Could not retrieve element from queue within %s seconds" % timeout)
+            continue
         fn = str(file)
         q_size = files_q.qsize()
         __print("Files remaining in queue for corpus:  %s" % str(q_size), print_lock)
