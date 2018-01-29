@@ -214,13 +214,14 @@ if __name__ == '__main__':
     vocab_path = 'vocab.pkl'
 
     if train_new:
-        stemmed_q = mp.JoinableQueue()
+        stemmed_q = mp.Queue()
         stem_proc = []
         for i in range(num_cores):
             p = mp.Process(target=make_corpus_q, args=(file_only, stemmed_q, print_lock))
             stem_proc.append(p)
             p.start()
             print("Started process %s for stemming" % i)
+        print("Done starting processes")
         while not file_only.empty():
             print("Still have active children: %s" % mp.active_children())
             sleep(.5)
