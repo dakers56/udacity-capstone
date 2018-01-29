@@ -169,10 +169,10 @@ def make_corpus_q(files_q, stemmed_q, print_lock):
     __print("Selecting files for corpus", print_lock)
     stemmer = PorterStemmer()
     while not files_q.empty():
+        file = files_q.get()
         fn = str(file)
         q_size = files_q.qsize()
         __print("Files remaining in queue for corpus:  %s" % str(q_size), print_lock)
-        file = files_q.get()
         file = open(file, 'r')
         __print("Next file for corpus is %s" % fn, print_lock)
         for word in data_prep.stem_file(stemmer, file):
