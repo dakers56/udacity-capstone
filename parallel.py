@@ -170,7 +170,6 @@ def read_all_transcript_files(base_dir='data_backup/seeking_alpha'):
         all_transcripts += data_prep.read_all_files_for_symbol(symbol, base_dir)
     return all_transcripts
 
-
 def make_corpus_q(files_q, stemmed_q, print_lock):
     sleep(.5)
     __print("Selecting files for corpus", print_lock)
@@ -206,13 +205,13 @@ def corpus_q_as_set(corpus_q, partial_q=None):
         print("Adding %s to corpus" % str(q))
         as_set.add(q)
         corpus_q.task_done()
-        wait(.5)
+        sleep(.5)
         
     print("Done converting corpus queue to set")
     return as_set
 
-
-if __name__ == '__main__':
+def main():
+    train_new=True
     print("inside main")
     train_new = sys.argv[1] == "true"
 
@@ -290,3 +289,8 @@ if __name__ == '__main__':
         print("Writing output to file.")
         write_output(cat_output(output))
         print("Done writing output to file.")
+
+if __name__ == '__main__':
+    print("About to run main() method")
+    main()
+
