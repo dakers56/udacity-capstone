@@ -223,7 +223,7 @@ if __name__ == '__main__':
             print("Started process %s for stemming" % i)
         print("Done starting processes")
         while not file_only.empty():
-            print("Still have active children: %s" % mp.active_children())
+            print("Still have active children: %s" % len(mp.active_children()))
             sleep(.5)
         print("Waiting until all files are consumed to create corpus queue")
         file_only.join()
@@ -255,7 +255,7 @@ if __name__ == '__main__':
             p.start()
 
         while not file_and_symbol.empty():
-            print("Still have active children: %s" % mp.active_children())
+            print("Still have active children: %s" % len(mp.active_children()))
             sleep(.5)
         print("Waiting to consume all of file_and_symbol queue")
         file_and_symbol.join()
