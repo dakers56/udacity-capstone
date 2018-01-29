@@ -221,9 +221,9 @@ if __name__ == '__main__':
             stem_proc.append(p)
             p.start()
             print("Started process %s for stemming" % i)
-        # while not file_only.empty():
-        #     print("Still have %s files to process." % file_only.qsize())
-        #     sleep(.5)
+        while not file_only.empty():
+            print("Still have active children: %s" % mp.active_children())
+            sleep(.5)
         print("Waiting until all files are consumed to create corpus queue")
         file_only.join()
         for p in stem_proc:
@@ -253,9 +253,9 @@ if __name__ == '__main__':
             cnt_vec_proc.append(p)
             p.start()
 
-        # while not file_and_symbol.empty():
-        #     print("Still have %s files to process." % file_and_symbol.qsize())
-        #     sleep(.5)
+        while not file_and_symbol.empty():
+            print("Still have active children: %s" % mp.active_children())
+            sleep(.5)
         print("Waiting to consume all of file_and_symbol queue")
         file_and_symbol.join()
         print("Done creating model.")
