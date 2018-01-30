@@ -210,8 +210,42 @@ def corpus_q_as_set(corpus_q, partial_q=None):
     print("Done converting corpus queue to set")
     return as_set
 
-def main():
-    train_new=True
+def join_output(a, b):
+    return a + b
+
+class CorpusProcess(mp.Process):
+    
+    def __init__(self, input_q, id, print_lock):
+        super().__init__(target=self.__process)
+        self.input_q = input_q
+        self.output = [] 
+        self.id = id
+        self.stemmer = PorterStemmer()
+        self.n_done = 0 
+        self.print_lock = print_lock
+
+    def __process(self):
+        sleep(.1)
+        with self.print_lock:
+            print("Outside while loop for process %s" % self.id)
+            corpus = None
+            while True:
+                print("Inside while loop for process %s" % self.id)
+                try:
+                   fn = self.input_q.get(timeout=.2)
+                   print("%s (Process %s) :  Next file for corpus is %s" % (datetime.datetime.now(), self.id, fn))
+                   fn = open(fn, 'r')
+                   for word in data_prep.stem_file(self.stemmer, fn):
+                       self.output.append(word)
+                   fn.close()
+                   self.n_done += 1
+                   self.input_q.task_done()
+                except Queue.Empty:  # on python 2 use Queue.Empty
+                    print("Queue was empty")
+                    break
+            print("Process %s complete." % self.id)
+
+def main(train_new=True):
     print("inside main")
     train_new = sys.argv[1] == "true"
 
@@ -232,24 +266,20 @@ def main():
         corpus = None
         stem_proc = []
         for i in range(num_cores):
-            p = mp.Process(target=make_corpus_q, args=(file_only, stemmed_q, print_lock))
+            p = CorpusProcess(file_only, i, print_lock)
             stem_proc.append(p)
-            p.start()
-            print("Started process %s for stemming" % i)
+        for p in stem_proc:
+           print("Starting process %s" % p.id)
+           p.start()
         print("Done starting processes")
-        while not file_only.empty():
-            print("Still have active children: %s" % len(mp.active_children()))
-            #corpus=corpus_q_as_set(stemmed_q, corpus)
-            sleep(.5)
-        print("Waiting until all files are consumed to create corpus queue")
-        print("Done processing file queue")
         file_only.join()
         for p in stem_proc:
             print("Performing final join of process")
             p.join()
-        print("Done making corpus queue")
-        corpus = corpus_q_as_set(stemmed_q)
-        print("Done converting corpus queue to set")
+
+        corpus = stem_proc[0]
+        for p in stem_proc[1:]:
+            corpus = join_output(out, p.output)
         print("Creating count vectorizer")
         cnt_vec = data_prep.get_vectorizer(corpus)
         print("Done creating count vectorizer")
@@ -274,18 +304,18 @@ def main():
             p = mp.Process(target=process, args=(file_and_symbol, output, cnt_vec[i], not_processed, print_lock, i))
             cnt_vec_proc.append(p)
             p.start()
-
-        while not file_and_symbol.empty():
-            print("Still have active children: %s" % len(mp.active_children()))
-            sleep(.5)
+        for p in cnt_vec_proc:
+            print("Terminating process for cnt_vec")
+            p.join()
+       
+       # while not file_and_symbol.empty():
+       #     print("Still have active children: %s" % len(mp.active_children()))
+       #     sleep(.5)
         print("Waiting to consume all of file_and_symbol queue")
         file_and_symbol.join()
         print("Done creating model.")
 
-        for p in cnt_vec_proc:
-            print("Terminating process for cnt_vec")
-            p.join()
-
+        
         print("Writing output to file.")
         write_output(cat_output(output))
         print("Done writing output to file.")
