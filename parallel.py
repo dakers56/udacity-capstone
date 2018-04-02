@@ -201,33 +201,17 @@ def read_all_transcript_files(base_dir='data_backup/seeking_alpha'):
     return all_transcripts
 
 
-def read_files(q):
+def read_file(fn):
     corpus = []
-    print("Reading all files from queue")
-    try:
-        while True:
-            next_fn = q.get()
-            print("Next file is %s" % next_fn)
-            add_to_corpus(next_fn, corpus)
-            print("Done adding words to corpus from '%s'" % next_fn)
-            time.sleep(.01)
-    except queue.Empty:
-        print("Queue was empty. Method 'read_file' returning")
-        return corpus
-
-
-def add_to_corpus(fn, corpus):
-    # print("Opening file %s" % fn)
     file = open(fn, 'r')
-    # print("Reading all lines from file")
-    # start = time.clock()
-    words = file.readlines()
+    lines = [l.split(" ") for l in file.readlines()]
     file.close()
-    # stop = time.clock()
-    # print("Done reading lines from file - %s s" % str(stop - start))
-    for w in words:
-        corpus.append(words)
-    # print("Done reading file '%s'" % fn)
+
+    for l in lines:
+        for w in l:
+            corpus.append(data_prep.alphanumerical(w))
+
+    return set(corpus)
 
 
 def files_for_symbol(symbol, base_dir='data_backup/seeking_alpha'):
@@ -235,71 +219,31 @@ def files_for_symbol(symbol, base_dir='data_backup/seeking_alpha'):
     return [symb_dir + f for f in os.listdir(base_dir + '/' + symbol)]
 
 
+def all_transcript_files(base_dir='data_backup/seeking_alpha'):
+    all_files = []
+    for symbol in os.listdir(base_dir):
+        print("Getting files for symbol %s" % symbol)
+        symbol_files = files_for_symbol(symbol, base_dir=base_dir)
+        for sf in symbol_files:
+            all_files.append(sf)
+    return all_files
+
+
 if __name__ == '__main__':
-
     start = time.clock()
-    with mp.Manager() as manager:
-        res = None
-        files_q = manager.Queue()
-        base_dir = 'data_backup/seeking_alpha'
-        all_files = []
-        for s in os.listdir(base_dir):
-            symbol_files = files_for_symbol(s)
-            for t in symbol_files:
-                all_files.append(t)
+    corpus = set()
 
-        print("Files added to queue:")
-        for f in all_files:
-            print(f)
-        put_all(files_q, all_files)
-        pool = mp.Pool(processes=mp.cpu_count())
-        res = [pool.apply_async(func=read_files, args=(files_q,))]
-        while True:
-            if files_q.empty():
-                print("Queue empty. Done processing queue")
-                break
-            print("Queue size is %s" % files_q.qsize())
-            time.sleep(1)
-
-        pool.terminate()
+    with mp.Pool(processes=mp.cpu_count()) as pool:
+        res = pool.map(read_file, all_transcript_files())
+        for r in res:
+            for s in r:
+                corpus.add(s)
+        print("size of corpus is %s" % len(corpus))
 
     stop = time.clock()
-    print("Time to read files: %s" % (stop - start))
-    print("Done with pool. Results:")
-    for r in res:
-        print(r)
 
+    print("Time to process corpus: %s" % str(stop - start))
+    print("Final corpus (unstemmed):")
 
-
-
-
-
-        # set_start_method('forkserver')
-        # train_new = sys.argv[1] == "true"
-        #
-        #
-        # file_and_symbol = Queue()
-        # put_all(file_and_symbol, read_all_transcript_files())
-        #
-        # output = Queue()
-        # not_processed = Queue()
-        # print_lock = Lock()
-        # print_lock.release()
-        #
-        # cnt_vec = None
-        # vocab_path = 'vocab.pkl'
-        # num_cpus = cpu_count()
-        # if train_new:
-        #     print("Building corpus")
-        #     corpus = data_prep.build_corpus()
-        #     print("Done building corpus")
-        #     cnt_vec = data_prep.get_vectorizer(corpus)
-        #     data_prep.write_vectorizer(cnt_vec)
-        # else:
-        #     cnt_vec = joblib.load(vocab_path)
-        # cnt_vec = [copy.copy(cnt_vec) for i in range(num_cpus)]
-        # if train_new:
-        #     for i in range(num_cpus):
-        #         p = Process(target=process, args=(file_and_symbol, output, cnt_vec, not_processed, print_lock))
-        #         p.start()
-        #         p.join()
+    for w in corpus:
+        print(w)
