@@ -1,8 +1,13 @@
 # Trying to parallelize stemming
+import datetime
 import multiprocessing as mp
 import os
 import time
+from json import load, dump
 from time import sleep
+
+import dateutil
+from nltk.stem import PorterStemmer
 
 import data_prep
 
@@ -73,6 +78,29 @@ def all_transcript_files(base_dir='data_backup/seeking_alpha'):
     return all_files
 
 
+def stem_word(stemmer, word):
+    return stemmer.stem(word)
+
+
+def stem_words(words):
+    stemmer = PorterStemmer()
+    return stem_word(stemmer, words)
+
+
+def save_corpus(corpus, stemmed=False, loc='corpora'):
+    if stemmed:
+        stemmed = 'stemmed'
+    else:
+        stemmed = 'unstemmed'
+    if type(corpus) is type(set):
+        corpus = list(corpus)
+    now = str(dateutil.parser.parse(str(datetime.datetime.now()))).replace(" ", "_")
+    f = open("%s/corpus-%s-%s" % (loc, stemmed, now), 'w')
+    dump(corpus, f)
+    # f.write(dumps(corpus))
+    # f.close()
+
+
 if __name__ == '__main__':
     start = time.clock()
     corpus = set()
@@ -83,11 +111,36 @@ if __name__ == '__main__':
             for s in r:
                 corpus.add(s)
         print("size of corpus is %s" % len(corpus))
+        stop = time.clock()
 
-    stop = time.clock()
+        print("Time to process corpus: %s" % str(stop - start))
 
-    print("Time to process corpus: %s" % str(stop - start))
-    print("Final corpus (unstemmed):")
+        save_corpus(list(corpus), stemmed=False)
 
-    for w in corpus:
-        print(w)
+        file = open('/Users/mve526/udacity/udacity-capstone/corpus-unstemmed-2018-04-02_13:32:53.084386', 'r')
+        corpus = load(file)
+        file.close()
+
+        print("Corpus contents:")
+        for w in corpus:
+            print(w)
+
+        print("Stemming corpus")
+        start = time.clock()
+        _stemmed = pool.map(stem_words, corpus)
+        print("type(_stemmed): %s" % type(_stemmed))
+        print("len(_stemmed): %s" % len(_stemmed))
+        print("_stemmed: %s" % _stemmed)
+        stop = time.clock()
+        print("Time to stem corpus: %s" % str(stop - start))
+
+        stemmed = set()
+        for s in _stemmed:
+            stemmed.add(s)
+
+        print("Done stemming corpus")
+        print("Size of corpus: %s" % len(corpus))
+        print("Stemmed corpus:")
+        for w in stemmed:
+            print(w)
+        save_corpus(list(stemmed), stemmed=True)
