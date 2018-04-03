@@ -1,6 +1,7 @@
 import re
 import os
 import math
+import multiprocessing as mp
 import joblib
 import dateutil.parser
 import datetime
@@ -18,6 +19,7 @@ import numpy as np
 def alphanumerical(text):
     return re.sub(pattern=r'[\\]x[0-9a-eA-Z]{1,2}', repl="",
                   string=re.sub(pattern="[^a-zA-Z0-9\s]", repl="", string=text)).replace("\n", "")
+
 
 def stem(stemmer, word):
     try:
@@ -40,11 +42,14 @@ def stem_file(file):
     print("Stemming file: %s" % file)
     lines = [alphanumerical(line) for line in file.readlines()]
     words = []
+    stemmer = None
+
     for line in lines:
         for word in line.split(" "):
             words.append(word)
             stemmer = PorterStemmer()
     return stemmed_vocab(stemmer, words)
+
 
 def unpack_elements(nested_list):
     unpacked = []
@@ -57,11 +62,12 @@ def unpack_elements(nested_list):
 def build_corpus(data=None):
     corpus = []
     for folder in data if data else data_folders():
-        for file in os.listdir(folder):
-            file = open("%s/%s" % (folder, file))
-            for word in stem_file(file):
-                corpus.append(word)
-            file.close()
+        with mp.Pool(processes=mp.cpu_count()) as pool:
+            for file in os.listdir(folder):
+                file = open("%s/%s" % (folder, file))
+                for word in stem_file(file):
+                    corpus.append(word)
+                file.close()
     return corpus
 
 
@@ -129,30 +135,33 @@ def vectorize_transcript(cnt_vec, file):
         print('Transcript contained invalid value' % X)
         return None
 
+
 def clean_quarters(funds):
     print("Scrubbing period_focus data")
     print("Before cleaning:\n%s" % str(funds))
     if funds is None:
         print("Funds was empty")
         return funds
-    funds.loc[:,'period_focus'].replace(to_replace=re.compile('Q'), value='', inplace=True)
+    funds.loc[:, 'period_focus'].replace(to_replace=re.compile('Q'), value='', inplace=True)
     print("After replacing 'Q':\n%s" % str(funds))
-    funds.loc[:,'period_focus'].replace(to_replace=re.compile('FY'), value='', inplace=True)
+    funds.loc[:, 'period_focus'].replace(to_replace=re.compile('FY'), value='', inplace=True)
     print("After replacing 'Y':\n%s" % str(funds))
     return funds
+
 
 def vectorize_funds(file, clean_data=False):
     if not os.path.exists(file):
         print("Path to fundamentals '%s' did not exist." % file)
         return None
     funds = None
-    #if clean_data:
+    # if clean_data:
     #    return pd.read_csv(file)
     funds = pd.read_csv(file).drop('symbol', axis=1).drop('end_date', axis=1).drop('amend', axis=1).drop('doc_type',
                                                                                                          axis=1)
     # eps_key, diluted_eps_key = 'eps_basic', 'eps_diluted'
     # eps, diluted_eps = funds['eps_basic'], funds['eps_diluted']
     return funds
+
 
 def df_str(df):
     s = "[ " + str(df[0])
@@ -161,17 +170,21 @@ def df_str(df):
     s += " ]"
     return s
 
-def cat_vectors(transcript, funds):
-    if funds is None:
-        print('Found None as funds')
-        return None
-    if funds.empty:
-        return None
-    #return assert_finite(np.concatenate((transcript, np.array(funds)[0])))
-    print("transcript shape: %s" % str(transcript.shape))
-    print("funds shape: %s" % str(np.array(funds)[0]))
-    return np.concatenate((transcript, np.array(funds)[0]))
-    #return np.array(funds)[0]
+
+def cat_vectors(v1, v2, axis=0):
+    # if funds is None:
+    #     print('Found None as funds')
+    #     return None
+    # if funds.empty:
+    #     return None
+    # return assert_finite(np.concatenate((transcript, np.array(funds)[0])))
+    # print("transcript shape: %s" % str(transcript.shape))
+    # print("funds shape: %s" % str(np.array(funds)[0]))
+    print("v1 shape: %s" % str(v1.shape))
+    print("v2 shape: %s" % str(v2.shape))
+    return np.concatenate((v1.reshape(1, -1), v2), axis=axis)
+    # return np.array(funds)[0]
+
 
 def is_finite(v):
     v1 = np.array([v])
@@ -181,6 +194,7 @@ def is_finite(v):
     except ValueError:
         print("Value %s was not finite" % v)
         return False
+
 
 def are_all_finite(v):
     for u in v:
@@ -197,8 +211,13 @@ def assert_finite(v):
         print('Concatenated vectors contained invalid value: %s' % v)
         return None
 
+
 def funds_exist(symbol):
     return os.path.exists("fundamentals/%s" % symbol)
+
+def append_all(l1, l2):
+    for l in l2:
+        l1.append(l)
 
 class UnprocessedFileList:
     def __init__(self):
@@ -212,19 +231,32 @@ class UnprocessedFileList:
     def len(self):
         return len(self.no_q) + len(self.no_y) + len(self.no_funds) + len(self.no_date_found)
 
-def process_symbol(symbol, base_dir, file):
-    file = "%s/%s/%s" % (base_dir, symbol, file)
-    print("File: %s" % file)
-    quarter, year = get_date(file)
-    if quarter is None:
-        not_processed.no_q.append(file)
-        continue
-    if quarter is "no_date_found":
-        print("No date found for file '%s'" % file)
-        not_processed.no_diluted_eps.append(file)
-        continue
-    fv, eps, diluted_eps  = feature_vector(cnt_vec, file, funds, quarter, year, not_processed)
-    return fv, eps, diluted_eps
+    def join(self, another):
+        new = UnprocessedFileList
+        new.no_q=append_all(self.no_q, another.no_q)
+        new.no_y=append_all(self.no_y, another.no_y)
+        new.no_funds=append_all(self.no_funds, another.no_funds)
+        new.no_date_found=append_all(self.no_date_found, another.no_date_found)
+        new.no_eps=append_all(self.no_eps, another.no_eps)
+        new.no_diluted_eps=append_all(self.no_diluted_eps, another.no_diluted_eps)
+        return new
+
+
+
+# def process_symbol(symbol, base_dir, file):
+#     file = "%s/%s/%s" % (base_dir, symbol, file)
+#     print("File: %s" % file)
+#     quarter, year = get_date(file)
+#     if quarter is None:
+#         not_processed.no_q.append(file)
+#         return
+#     if quarter is "no_date_found":
+#         print("No date found for file '%s'" % file)
+#         not_processed.no_diluted_eps.append(file)
+#         return
+#     fv, eps, diluted_eps = feature_vector(cnt_vec, file, funds, quarter, year, not_processed)
+#     return fv, eps, diluted_eps
+
 
 def are_valid(fv, eps, diluted_eps, file):
     if fv is None:
@@ -236,15 +268,87 @@ def are_valid(fv, eps, diluted_eps, file):
     if diluted_eps is None:
         not_processed.diluted_eps.append(diluted_eps)
         return False
-    if not are_all_finite(np.array([fv])) or not are_all_finite(np.array([eps])) or not are_all_finite(np.array([diluted_eps])):
+    if not are_all_finite(np.array([fv])) or not are_all_finite(np.array([eps])) or not are_all_finite(
+            np.array([diluted_eps])):
         return False
     return True
 
+
 def append_X_train(X_train, fv):
-    return np.append(X_train_, np.array([fv]), axis=0)
+    return np.append(X_train, np.array([fv]), axis=0)
+
 
 def append_eps(all_eps, new_eps):
-    return np.append(all_eps_, np.array([eps]), axis=0)
+    return np.append(all_eps, np.array([new_eps]), axis=0)
+
+
+class MatchFundsOutput:
+    def __init__(self, X_train, all_eps, all_diluted_eps, not_processed):
+        self.X_train = X_train
+        self.all_eps = all_eps
+        self.all_diluted_eps = all_diluted_eps
+        self.not_processed = not_processed
+
+    def join(self, another):
+        X_train_=cat_vectors(self.X_train, another.X_train_, axis=1)
+        all_eps_=cat_vectors(self.all_eps, another.all_eps, axis=1)
+        all_diluted_eps=cat_vectors(self.all_diluted_eps, another.all_diluted_eps, axis=1)
+        not_processed=self.not_processed.join(another.not_processed)
+
+def match_funds(file, symbol, cnt_vec):
+    print("File: %s" % file)
+    X_train_ = None
+    all_eps_ = None
+    all_diluted_eps_ = None
+    not_processed = UnprocessedFileList()
+    funds = None
+    if funds_exist(symbol):
+        funds = vectorize_funds('fundamentals/%s' % symbol)
+        if funds is None:
+            return MatchFundsOutput(X_train=X_train_, all_eps=all_eps_, all_diluted_eps=all_diluted_eps_, not_processed=not_processed)
+        quarter, year = get_date(file)
+        if quarter is None:
+            not_processed.no_q.append(file)
+            return MatchFundsOutput(X_train=X_train_, all_eps=all_eps_, all_diluted_eps=all_diluted_eps_, not_processed=not_processed)
+        if quarter is "no_date_found":
+            print("No date found for file '%s'" % file)
+            not_processed.no_diluted_eps.append(file)
+            return MatchFundsOutput(X_train=X_train_, all_eps=all_eps_, all_diluted_eps=all_diluted_eps_, not_processed=not_processed)
+        fv, eps, diluted_eps = feature_vector(cnt_vec, file, funds, quarter, year, not_processed)
+        if fv is None:
+            not_processed.no_date_found.append(file)
+            return MatchFundsOutput(X_train=X_train_, all_eps=all_eps_, all_diluted_eps=all_diluted_eps_, not_processed=not_processed)
+        if eps is None:
+            not_processed.no_eps.append(eps)
+            return MatchFundsOutput(X_train=X_train_, all_eps=all_eps_, all_diluted_eps=all_diluted_eps_, not_processed=not_processed)
+        if diluted_eps is None:
+            not_processed.diluted_eps.append(diluted_eps)
+            return MatchFundsOutput(X_train=X_train_, all_eps=all_eps_, all_diluted_eps=all_diluted_eps_, not_processed=not_processed)
+        if not are_all_finite(np.array([fv])) or not are_all_finite(np.array([eps])) or not are_all_finite(
+                np.array([diluted_eps])):
+            print("Not all entries were finite. Returning.")
+            return MatchFundsOutput(X_train=X_train_, all_eps=all_eps_, all_diluted_eps=all_diluted_eps_, not_processed=not_processed)
+            if X_train_ is None:
+                # print("Shape fv: %s" % fv.shape)
+                X_train_ = np.array([fv])
+            else:
+                # print("Shape fv: %s" % fv.shape)
+                #  print('X_train: %s' % X_train_)
+                X_train_ = np.append(X_train_, np.array([fv]), axis=0)
+                # print("Shape X_train_: %s" % str(X_train_.shape))
+        if all_eps_ is None:
+            all_eps_ = np.array([eps])
+        else:
+            all_eps_ = np.append(all_eps_, np.array([eps]), axis=0)
+        if all_diluted_eps_ is None:
+            all_diluted_eps_ = np.array([diluted_eps])
+        else:
+            all_diluted_eps_ = np.append(all_diluted_eps_, np.array([diluted_eps]), axis=0)
+    else:
+        print("Fundamentals did not exist for %s" % symbol)
+
+    return MatchFundsOutput(X_train=X_train_, all_eps=all_eps_, all_diluted_eps=all_diluted_eps_, not_processed=not_processed)
+
 
 def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
     X_train_ = None
@@ -259,7 +363,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
             print("Fund was None")
             continue
         if funds_exist(symbol):
-            files = ["%s/%s/%s" % (base_dir, symbol, file) for file in os.listdir(transcript_path):
+            files = ["%s/%s/%s" % (base_dir, symbol, file) for file in os.listdir(transcript_path)]
             for file in os.listdir(transcript_path):
                 file = "%s/%s/%s" % (base_dir, symbol, file)
                 print("File: %s" % file)
@@ -271,7 +375,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     print("No date found for file '%s'" % file)
                     not_processed.no_diluted_eps.append(file)
                     continue
-                fv, eps, diluted_eps  = feature_vector(cnt_vec, file, funds, quarter, year, not_processed)
+                fv, eps, diluted_eps = feature_vector(cnt_vec, file, funds, quarter, year, not_processed)
                 if fv is None:
                     not_processed.no_date_found.append(file)
                     continue
@@ -281,16 +385,17 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                 if diluted_eps is None:
                     not_processed.diluted_eps.append(diluted_eps)
                     continue
-                if not are_all_finite(np.array([fv])) or not are_all_finite(np.array([eps])) or not are_all_finite(np.array([diluted_eps])):
+                if not are_all_finite(np.array([fv])) or not are_all_finite(np.array([eps])) or not are_all_finite(
+                        np.array([diluted_eps])):
                     continue
                 if X_train_ is None:
-                    #print("Shape fv: %s" % fv.shape)
+                    # print("Shape fv: %s" % fv.shape)
                     X_train_ = np.array([fv])
                 else:
-                    #print("Shape fv: %s" % fv.shape)
-                    #print('X_train: %s' % X_train_)
+                    # print("Shape fv: %s" % fv.shape)
+                    # print('X_train: %s' % X_train_)
                     X_train_ = np.append(X_train_, np.array([fv]), axis=0)
-                    #print("Shape X_train_: %s" % str(X_train_.shape))
+                    # print("Shape X_train_: %s" % str(X_train_.shape))
                 if all_eps_ is None:
                     all_eps_ = np.array([eps])
                 else:
@@ -301,7 +406,7 @@ def get_input_data(cnt_vec, base_dir='data_backup/seeking_alpha'):
                     all_diluted_eps_ = np.append(all_diluted_eps_, np.array([diluted_eps]), axis=0)
         else:
             print("Fundamentals did not exist for %s" % symbol)
-    return X_train_, all_eps_, all_diluted_eps_, not_processed
+    return MatchFundsOutput(X_train=X_train_, all_eps=all_eps_, all_diluted_eps=all_diluted_eps_, not_processed=not_processed)
 
 
 def all_funds():
@@ -315,6 +420,7 @@ def all_funds():
         else:
             all = all.append(df)
     return all
+
 
 def get_matching_funds(funds, quarter, year, not_processed):
     print("Getting matching fundamentals.")
@@ -341,9 +447,9 @@ def get_matching_funds(funds, quarter, year, not_processed):
         print("type(eps match): %s" % str(type(match['eps_basic'])))
         print("eps match iloc[0]: %s" % match['eps_basic'].iloc[0])
         print("type(eps match iloc[0]): %s" % str(type(match['eps_basic'].iloc[0])))
-        print("shape of eps_basic match: %s" % str(match.loc[:,'eps_basic'].shape))
-        #eps, diluted_eps = match.loc[:,'eps_basic'].iloc[0].reshape(-1,1), match.loc[:,'eps_diluted'].iloc[0].reshape(-1,1)
-        eps, diluted_eps = match.loc[:,'eps_basic'].iloc[0], match.loc[:,'eps_diluted'].iloc[0]
+        print("shape of eps_basic match: %s" % str(match.loc[:, 'eps_basic'].shape))
+        # eps, diluted_eps = match.loc[:,'eps_basic'].iloc[0].reshape(-1,1), match.loc[:,'eps_diluted'].iloc[0].reshape(-1,1)
+        eps, diluted_eps = match.loc[:, 'eps_basic'].iloc[0], match.loc[:, 'eps_diluted'].iloc[0]
         _assert_all_finite(eps)
     except KeyError as e:
         print("Caught key error: %s" % str(e))
@@ -354,10 +460,10 @@ def get_matching_funds(funds, quarter, year, not_processed):
         not_processed.no_eps.append(match)
         print('eps value was not finite: %s' % eps)
         return None, None, None
-    #print("after replacement: %s" % replacement)
-    #try:
+    # print("after replacement: %s" % replacement)
+    # try:
     #    match.period_focus.replace(to_replace=re.compile(".*"), value=replacement, inplace=True)
-    #except ValueError as e:
+    # except ValueError as e:
     #    print("Caught value error while attempting to determine quarter: %s" % str(e))
     #    return None, None, None
     funds = funds.drop(match.index, axis=0)
@@ -366,7 +472,7 @@ def get_matching_funds(funds, quarter, year, not_processed):
     match = drop_label(match, 'eps_diluted')
     match = drop_label(match, 'period_focus')
     match = drop_label(match, 'fiscal_year')
-    #return match.drop('eps_basic', axis=1).drop('eps_diluted', axis=1).drop('period_focus',axis=1).drop('fiscal_year', axis=1), eps, diluted_eps)
+    # return match.drop('eps_basic', axis=1).drop('eps_diluted', axis=1).drop('period_focus',axis=1).drop('fiscal_year', axis=1), eps, diluted_eps)
     return match, eps, diluted_eps
 
 
@@ -376,6 +482,7 @@ def drop_label(df, label):
     df = df.drop(label, axis=1)
     print("Shape after drop operation: %s" % str(df.shape))
     return df
+
 
 def swap_str(string, ch1, ch2):
     ch1_index = string.index(ch1)
@@ -460,13 +567,20 @@ def get_date(file):
 
 def feature_vector(cnt_vec, transcript_file, funds, quarter, year, not_processed):
     print("-------------")
-    print("Creating feature vector") 
+    print("Creating feature vector")
     funds_vec, eps, diluted_eps = get_matching_funds(funds, quarter, year, not_processed)
+    if funds_vec is None or eps is None or diluted_eps is None:
+        return None, None, None
     print("funds_vec: %s" % str(funds_vec))
-    transcript_vec = vectorize_transcript(cnt_vec, transcript_file)  
+    transcript_vec = vectorize_transcript(cnt_vec, transcript_file)
     print("-------------")
-    return cat_vectors(transcript_vec, funds_vec), eps, diluted_eps
-    #return funds_vec, eps, diluted_eps
+    try:
+        return cat_vectors(transcript_vec, funds_vec, axis=1), eps, diluted_eps
+    except ValueError as e:
+        print("Caught exception: %s" % e)
+        return None, None, None
+    # return funds_vec, eps, diluted_eps
+
 
 def bad_rows(X, is_X=True):
     bad = []
@@ -528,14 +642,14 @@ def write_to_file(X, file, ds_name):
 
 def write_to_error(err_file, tr_ex, tr_lbl, i):
     err_file = open(err_file, 'a')
-    err_file.write(str(i) + "|"   + str(tr_ex) + ' | ' + str(tr_lbl) + "\n")
+    err_file.write(str(i) + "|" + str(tr_ex) + ' | ' + str(tr_lbl) + "\n")
     err_file.close()
 
 
 def validate_data(tr_ex, tr_lbl, i):
     clf = LinearRegression()
     try:
-        clf.fit(tr_ex, tr_lbl.reshape(-1,1))
+        clf.fit(tr_ex, tr_lbl.reshape(-1, 1))
         return True
     except ValueError as e:
         print("Encountered ValueError while training data: %s" % str(e))
@@ -544,84 +658,93 @@ def validate_data(tr_ex, tr_lbl, i):
         write_to_error('bad_data.out', tr_ex, tr_lbl, i)
         return False
 
+
 if __name__ == '__main__':
-    print("Training model for capstone project")
-    now = time.clock()
-    cnt_vec = None
-    vocab_path = 'vocab.pkl'
-
-    if not os.path.exists(vocab_path):
-        corpus = build_corpus()
-        cnt_vec = get_vectorizer(corpus)
-        write_vectorizer(cnt_vec)
-    else:
-        cnt_vec = joblib.load(vocab_path)
-    all_input_path = 'all_input.pkl'
-    all_eps_path = 'all_eps.pkl'
-    all_diluted_eps_path = 'all_diluted_eps.pkl'
-    not_processed_path = 'not_processed.pkl'
- 
-    all_input, all_eps, all_diluted_eps, not_processed = None, None, None, None
-
-    if not os.path.exists(all_input_path) or not os.path.exists(all_eps_path) or not os.path.exists(all_diluted_eps_path) or not os.path.exists(not_processed_path):
-        all_input, all_eps, all_diluted_eps, not_processed = get_input_data(cnt_vec)
-        joblib.dump(all_input, all_input_path)
-        joblib.dump(all_eps, all_eps_path)
-        joblib.dump(all_diluted_eps, all_diluted_eps_path)
-        joblib.dump(not_processed,not_processed_path)
-    else:
-        all_input = joblib.load(all_input_path)
-        all_eps = joblib.load(all_eps_path)
-        all_diluted_eps = joblib.load(all_diluted_eps_path)
-        not_processed = joblib.load(not_processed_path)
-      
-    #to_drop = []
-    #for i in range(all_input.shape[0]):
-    #    if not validate_data(all_input[i], all_eps[i], i):
-    #       to_drop.append(i)
-    #if to_drop:
-    #    print("Dropping indices: %s" % ','.join(str(v) for v in to_drop))
-    #    all_input.delete(to_drop, axis=0)
-    #    all_eps.delete(to_drop, axis=0)
-    
-
-    print("Number of processed vectors: %s" % all_input.size)
-    print("Number of unprocessed vectors: %s" % str(not_processed.len()))
-    print('Reasons for not processing:')
-    print('No year: %s' % not_processed.no_y)
-    print('No quarter: %s' % not_processed.no_q)
-    print('No fundamentals file: %s' % not_processed.no_funds)
-    print('Could not parse data from file: %s' % not_processed.no_date_found)
-
-    print("Performing linear regression of transcripts and fundamentals vs basic eps.")
-    print("shape of all_eps: %s" % str(all_eps.shape))
-    print("shape of all_input: %s" % str(all_input.shape))
-    print("All input:\n%s" % all_input)
-    print("All eps: %s" % all_eps)
-    X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
-    lin_reg = LinearRegression()
-    print("Fitting data")
-    print("Performance on test data:")
-    lin_reg.fit(X_train, y_train)
-    print(lin_reg.score(X_test, y_test))
-    now = time.clock() - now
-    print("Process took %s seconds." % (now / 1000))
+    a = np.array([[1, 2]])
+    b = np.array([[5, 6]])
+    print("a: %s" % a)
+    print("b: %s" % b)
+    c = cat_vectors(a, b)
+    print("concatenated along axis 0 (shape: %s) : %s" % (c.shape, c))
+    c = cat_vectors(a, b, axis=1)
+    print("concatenated along axis 1: (shape: %s) : %s" % (c.shape, c))
+    # print("Training model for capstone project")
+    # now = time.clock()
+    # cnt_vec = None
+    # vocab_path = 'vocab.pkl'
     #
-    # print("Before removing bad rows:")
-    # print("X_train shape: %s" % str(X_train.shape))
-    # write_to_file(X_train, 'x_train.out', 'x_train')
-    # print("y_train shape: %s" % str(y_train.shape))
-    # write_to_file(y_train, 'y_train.out', 'y_train')
-    # print("X_test shape: %s" % str(X_test.shape))
-    # write_to_file(X_train, 'x_test.out', 'x_test')
-    # print("y_test shape: %s" % str(y_test.shape))
-    # write_to_file(X_train, 'y_test.out', 'y_test')
-    # check_dim(X_train, y_train)
-    # check_dim(X_test, y_test)
-
-
-    # print("X_train shape: %s" % str(X_train.shape))
-    # print("X_test shape: %s" % str(X_test.shape))
-    # print('Shape of y_train: %s' % str(y_train.shape))
-    # print('Shape of y_test: %s' % str(y_test.shape))
-
+    # if not os.path.exists(vocab_path):
+    #     corpus = build_corpus()
+    #     cnt_vec = get_vectorizer(corpus)
+    #     write_vectorizer(cnt_vec)
+    # else:
+    #     cnt_vec = joblib.load(vocab_path)
+    # all_input_path = 'all_input.pkl'
+    # all_eps_path = 'all_eps.pkl'
+    # all_diluted_eps_path = 'all_diluted_eps.pkl'
+    # not_processed_path = 'not_processed.pkl'
+    #
+    # all_input, all_eps, all_diluted_eps, not_processed = None, None, None, None
+    #
+    # if not os.path.exists(all_input_path) or not os.path.exists(all_eps_path) or not os.path.exists(
+    #         all_diluted_eps_path) or not os.path.exists(not_processed_path):
+    #     all_input, all_eps, all_diluted_eps, not_processed = get_input_data(cnt_vec)
+    #     joblib.dump(all_input, all_input_path)
+    #     joblib.dump(all_eps, all_eps_path)
+    #     joblib.dump(all_diluted_eps, all_diluted_eps_path)
+    #     joblib.dump(not_processed, not_processed_path)
+    # else:
+    #     all_input = joblib.load(all_input_path)
+    #     all_eps = joblib.load(all_eps_path)
+    #     all_diluted_eps = joblib.load(all_diluted_eps_path)
+    #     not_processed = joblib.load(not_processed_path)
+    #
+    # # to_drop = []
+    # # for i in range(all_input.shape[0]):
+    # #    if not validate_data(all_input[i], all_eps[i], i):
+    # #       to_drop.append(i)
+    # # if to_drop:
+    # #    print("Dropping indices: %s" % ','.join(str(v) for v in to_drop))
+    # #    all_input.delete(to_drop, axis=0)
+    # #    all_eps.delete(to_drop, axis=0)
+    #
+    #
+    # print("Number of processed vectors: %s" % all_input.size)
+    # print("Number of unprocessed vectors: %s" % str(not_processed.len()))
+    # print('Reasons for not processing:')
+    # print('No year: %s' % not_processed.no_y)
+    # print('No quarter: %s' % not_processed.no_q)
+    # print('No fundamentals file: %s' % not_processed.no_funds)
+    # print('Could not parse data from file: %s' % not_processed.no_date_found)
+    #
+    # print("Performing linear regression of transcripts and fundamentals vs basic eps.")
+    # print("shape of all_eps: %s" % str(all_eps.shape))
+    # print("shape of all_input: %s" % str(all_input.shape))
+    # print("All input:\n%s" % all_input)
+    # print("All eps: %s" % all_eps)
+    # X_train, X_test, y_train, y_test = train_test_split(all_input, all_eps)
+    # lin_reg = LinearRegression()
+    # print("Fitting data")
+    # print("Performance on test data:")
+    # lin_reg.fit(X_train, y_train)
+    # print(lin_reg.score(X_test, y_test))
+    # now = time.clock() - now
+    # print("Process took %s seconds." % (now / 1000))
+    # #
+    # # print("Before removing bad rows:")
+    # # print("X_train shape: %s" % str(X_train.shape))
+    # # write_to_file(X_train, 'x_train.out', 'x_train')
+    # # print("y_train shape: %s" % str(y_train.shape))
+    # # write_to_file(y_train, 'y_train.out', 'y_train')
+    # # print("X_test shape: %s" % str(X_test.shape))
+    # # write_to_file(X_train, 'x_test.out', 'x_test')
+    # # print("y_test shape: %s" % str(y_test.shape))
+    # # write_to_file(X_train, 'y_test.out', 'y_test')
+    # # check_dim(X_train, y_train)
+    # # check_dim(X_test, y_test)
+    #
+    #
+    # # print("X_train shape: %s" % str(X_train.shape))
+    # # print("X_test shape: %s" % str(X_test.shape))
+    # # print('Shape of y_train: %s' % str(y_train.shape))
+    # # print('Shape of y_test: %s' % str(y_test.shape))
