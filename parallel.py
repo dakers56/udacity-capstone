@@ -5,6 +5,7 @@ import os
 import time
 import joblib
 import pandas as pd
+import numpy as np
 import sys
 from time import sleep
 from sklearn.feature_extraction.text import CountVectorizer
@@ -15,23 +16,6 @@ from nltk.stem import PorterStemmer
 import data_prep
 
 home = "/home/ubuntu"
-
-
-def put_all(q, iter):
-    for obj in iter:
-        print("putting obj: %s" % obj)
-        q.put(obj)
-    sleep(1)
-
-
-def get_all(q):
-    all = []
-    while not q.empty():
-        el = q.get(timeout=1)
-        print("el : %s" % str(el))
-        all.append(el)
-    print("inside get_all: %s" % all)
-    return all
 
 
 class Output:
@@ -47,14 +31,6 @@ class Results(Output):
         self.not_processed = not_processed
 
 
-def __print(statement, lock):
-    lock.acquire()
-    try:
-        print(statement)
-    finally:
-        lock.release()
-
-
 def read_file(fn):
     corpus = []
     file = open(fn, 'r')
@@ -68,12 +44,12 @@ def read_file(fn):
     return set(corpus)
 
 
-def files_for_symbol(symbol, base_dir='data_backup/seeking_alpha'):
+def files_for_symbol(symbol, base_dir='data'):
     symb_dir = base_dir + '/' + symbol + '/'
     return [symb_dir + f for f in os.listdir(base_dir + '/' + symbol)]
 
 
-def all_transcript_files(base_dir='data_backup/seeking_alpha', with_symbol=False):
+def all_transcript_files(base_dir='data', with_symbol=False):
     if with_symbol:
         all_files = {}
     else:
@@ -113,30 +89,63 @@ def save_corpus(corpus, stemmed=False, loc='corpora'):
 
 
 class FileSymbolAndCountVect:
-    def __init__(self, file, symbol, cnt_vec):
+    def __init__(self, file, symbol, cnt_vec, df_file=None):
         self.file = file
         self.symbol = symbol
         self.cnt_vec = cnt_vec
+        self.df_file = df_file
 
 
-def __match_funds(fscv_obj):
+def __match_funds(fscv_obj, df_file=None):
     print("File: %s" % fscv_obj.file)
     print("Symbol: %s" % fscv_obj.symbol)
     print("cnt_vec: %s" % fscv_obj.cnt_vec)
     test = None
+
     try:
-        test = data_prep.match_funds(file=fscv_obj.file, symbol=fscv_obj.symbol, cnt_vec=fscv_obj.cnt_vec)
+        test = data_prep.match_funds(file=fscv_obj.file, symbol=fscv_obj.symbol, cnt_vec=fscv_obj.cnt_vec,
+                                     df_file=df_file)
     except pd.io.common.EmptyDataError as e:
         print("Caught exception while matching transcript with fundamentals: " + str(e))
     return test
 
 
-def __to_fscv_list(fs_dict, cnt_vec):
-    return [FileSymbolAndCountVect(file=f, symbol=s, cnt_vec=cnt_vec) for f, s in fs_dict.items()]
+def __to_fscv_list(fs_dict, cnt_vec, df_file=None):
+    return [FileSymbolAndCountVect(file=f, symbol=s, cnt_vec=cnt_vec, df_file=df_file) for f, s in fs_dict.items()]
+
+
+def symbol_map(X_train):
+    df = pd.DataFrame(X_train)
+    symbols = set(df[:][0].unique())
+    i = 0
+    sym_map = {}
+    for s in symbols:
+        sym_map[s] = np.float64(i)
+        i += 1
+    return sym_map
+
+
+def symbol_counts(X_train):
+    df = pd.DataFrame(X_train)
+    sym_cnt = {}
+    for sym in set(df[:][0].unique()):
+        sym_cnt[sym] = np.float64(df[df[0] == sym].count()[0])
+    return sym_cnt
+
+
+def split_mro_list(mro_list):
+    split_list = []
+    for i in range(0, len(mro_list), 2):
+        if i < (len(mro_list) - 1):
+            split_list.append([mro_list[i], mro_list[i + 1]])
+        else:
+            split_list.append([mro_list[i]])
+    return split_list
 
 
 if __name__ == '__main__':
-    _start = time.clock()
+
+    _start = time.time()
 
     print("Generating vectorized data for udacity capstone project model.")
     print("Arguments provided:")
@@ -180,23 +189,23 @@ if __name__ == '__main__':
         else:
             print("No corpus file provided, generating unstemmed corpus.")
             with mp.Pool(processes=mp.cpu_count()) as pool:
-                start = time.clock()
+                start = time.time()
                 res = pool.map(read_file, all_transcript_files())
                 for r in res:
                     for s in r:
                         corpus.add(s)
                 print("size of corpus is %s" % len(corpus))
-                stop = time.clock()
-                print("Time to process corpus: %s" % str(stop - start))
+                stop = time.time()
+                print("Time to process corpus: %s" % str((stop - start)))
                 save_corpus(list(corpus), stemmed=False)
 
                 print("No stemmed corpus file provided, generating stemmed corpus.")
                 print("Stemming corpus.")
-                start = time.clock()
+                start = time.time()
                 _stemmed = pool.map(stem_words, corpus)
                 print("Done stemming corpus.")
-                stop = time.clock()
-                print("Time to stem corpus: %s" % str(stop - start))
+                stop = time.time()
+                print("Time to stem corpus: %s" % str((stop - start)))
                 print("Saving stemmed corpus.")
                 for s in _stemmed:
                     corpus.add(s)
@@ -204,9 +213,9 @@ if __name__ == '__main__':
 
     if not ld_BoW:
         print("Fitting BoW transform")
-        start = time.clock()
-        BoW_transform = CountVectorizer(analyzer='word', max_features=100).fit(corpus)
-        stop = time.clock()
+        start = time.time()
+        BoW_transform = CountVectorizer(analyzer='word').fit(corpus)
+        stop = time.time()
         print("Done training BoW transform - %s s" % str(stop - start))
         joblib.dump(BoW_transform,
                     "BoW_transform/%s-vocab_size=%s" % (
@@ -215,17 +224,68 @@ if __name__ == '__main__':
         print("Wrote BoW_transform to file.")
 
     trans_dict = all_transcript_files(with_symbol=True)
-    fscv_list = __to_fscv_list(trans_dict, BoW_transform)
+    df_file = "/Users/mve526/udacity/udacity-capstone/russell_full.csv"
+    fscv_list = __to_fscv_list(trans_dict, BoW_transform, df_file=df_file)
 
     model_input = None
     with mp.Pool(processes=mp.cpu_count()) as pool:
         model_input = pool.map(__match_funds, fscv_list)
 
+
+    model_input = [m for m in model_input if m.is_valid()]
     print("Combining inputs into single matrix.")
-    model_input = data_prep.join_output(model_input)
+    print("Time: %s" % str(datetime.datetime.now()))
+    start = time.time()
+    # model_input = data_prep.join_output(model_input)
+    with mp.Pool(processes=mp.cpu_count()) as pool:
+        as_list = split_mro_list(model_input)
+        while len(as_list) > 1:
+            as_list = pool.map(data_prep.join_output, as_list)
+            as_list = split_mro_list(as_list)
+
+    as_list[0][0].join(as_list[0][1])
+    model_input = as_list[0][0]
+    stop = time.time()
+    print("Done - %ss" % str(stop - start))
+    now = str(datetime.datetime.now()).replace(" ", "_")
+    start = time.time()
+    print("Mapping symbols to integers.")
+    sym_map = symbol_map(model_input.X_train)
+    stop = time.time()
+    print("Done mapping symbols to integers - %ss" % str(stop - start))
+
+    print("Counting number of instances of each stock symbol.")
+    start = time.time()
+    sym_cnt = symbol_counts(model_input.X_train)
+    stop = time.time()
+
+    print("Dumping symbol map to file")
+    start = time.time()
+    joblib.dump(sym_map, "symbol_map/symbol-map-%s" % now)
+    stop = time.time()
+    print("Done - %ss" % str(stop - start))
+
+    print("Dumping symbol count to file")
+    start = time.time()
+    joblib.dump(sym_cnt, "symbol_count/symbol-count-%s" % now)
+    stop = time.time()
+    print("Done - %ss" % str(stop - start))
+
+    print("Converting symbols to integers.")
+    start = time.time()
+    for i in range(model_input.X_train.shape[0]):
+        model_input.X_train[i][0] = sym_map[model_input.X_train[i][0]]
+    stop = time.time()
+    print("Done - %ss" % str(stop - start))
+
+    model_input.X_train = model_input.X_train
+
     print("Saving final vectors")
+    start = time.time()
     joblib.dump(model_input,
-                ("model_input/model_input-%s-vocab_size=%s" % (str(
-                    dateutil.parser.parse(str(datetime.datetime.now()))).replace(" ", "_"),
-                                                               BoW_transform.max_features)))
-    print("Total time taken: %s" % str(time.clock() - _start))
+                ("model_input/model_input-%s-vocab_size=%s" % (now, BoW_transform.max_features)))
+    stop = time.time()
+    print("Done - %ss" % str(stop - start))
+
+    print("Total time taken: %s" % (str(time.time() - _start)))
+    print("Total time taken(process time): %s" % str(time.process_time()))
