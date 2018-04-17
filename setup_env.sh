@@ -6,3 +6,4 @@ echo "export PATH=/home/ubuntu/anaconda3/bin:$PATH" >> /home/ubuntu/.bash_profil
 
 source /home/ubuntu/.bash_profile
 conda create -n udacity_ml
+pip install -e .
