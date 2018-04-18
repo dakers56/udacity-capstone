@@ -75,6 +75,9 @@ def stem_words(words):
 
 
 def save_corpus(corpus, stemmed=False, loc='corpora'):
+    if not os.path.exists(loc):
+        print("Directory '%s' did not exist. Creating now." % loc)
+        os.mkdir(loc)
     if stemmed:
         stemmed = 'stemmed'
     else:
@@ -217,6 +220,9 @@ if __name__ == '__main__':
         BoW_transform = CountVectorizer(analyzer='word').fit(corpus)
         stop = time.time()
         print("Done training BoW transform - %s s" % str(stop - start))
+        if not os.path.exists("BoW_transform"):
+            print("Directory BoW_transform did not exist. Creating now")
+        os.mkdir("BoW_transform")
         joblib.dump(BoW_transform,
                     "BoW_transform/%s-vocab_size=%s" % (
                         str(dateutil.parser.parse(str(datetime.datetime.now()))).replace(" ", "_"),
@@ -260,12 +266,18 @@ if __name__ == '__main__':
     stop = time.time()
 
     print("Dumping symbol map to file")
+    if not os.path.exists("symbol_map"):
+        print("Directory symbol_map did not exist. Creating now")
+        os.mkdir("symbol_map")
     start = time.time()
     joblib.dump(sym_map, "symbol_map/symbol-map-%s" % now)
     stop = time.time()
     print("Done - %ss" % str(stop - start))
 
     print("Dumping symbol count to file")
+    if not os.path.exists("symbol_map"):
+        print("Directory symbol_count did not exist. Creating now")
+        os.mkdir("symbol_count")
     start = time.time()
     joblib.dump(sym_cnt, "symbol_count/symbol-count-%s" % now)
     stop = time.time()
@@ -281,6 +293,9 @@ if __name__ == '__main__':
     model_input.X_train = model_input.X_train
 
     print("Saving final vectors")
+    if not os.path.exists("model_input"):
+        print("Directory model_input did not exist. Creating now")
+        os.mkdir("model_input")
     start = time.time()
     joblib.dump(model_input,
                 ("model_input/model_input-%s-vocab_size=%s" % (now, BoW_transform.max_features)))
